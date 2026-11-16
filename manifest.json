@@ -1,0 +1,17 @@
+{
+  "name": "바다 구조대 - 오늘도 하나 해냈다!",
+  "short_name": "바다 구조대",
+  "description": "하루 한 지문, 고리를 하나씩 끊어 바다 친구를 구하는 영어 공부 게임",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fbf7ef",
+  "theme_color": "#3f948a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
