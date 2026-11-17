@@ -51,7 +51,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .tabs{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;display:flex;align-items:center;gap:8px;background:var(--card);padding:10px 18px 10px 12px;border-radius:999px;box-shadow:var(--shadow);font-family:"Jua";font-size:19px;border:3px solid transparent;transition:.15s}
-.tab .em{font-size:26px}
+.tab .em{width:34px;height:34px;display:block}
 .tab.on{border-color:var(--teal);background:#effaf7}
 .tab.add{color:var(--teal);padding:10px 18px}
 .tab .dot{width:9px;height:9px;border-radius:50%;background:var(--coral);margin-left:2px}
@@ -65,7 +65,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 
 /* profile */
 .profile{display:flex;gap:16px;align-items:center}
-.buddy{flex:none;width:96px;height:96px;border-radius:26px;background:var(--teal-soft);display:grid;place-items:center;font-size:60px;position:relative}
+.buddy{flex:none;width:96px;height:96px;border-radius:26px;background:var(--teal-soft);display:grid;place-items:center;position:relative;padding:6px}
 .buddy .lv{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:var(--coral);color:#fff;font-family:"Jua";font-size:15px;padding:2px 10px;border-radius:999px;white-space:nowrap}
 .pinfo{flex:1;min-width:0}
 .pname{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -85,9 +85,14 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .mission-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .rule{font-size:15px;color:var(--ink-soft)}
 .stage{display:flex;align-items:center;gap:12px;margin-top:14px}
-.animal-box{flex:none;width:150px;height:150px;border-radius:28px;display:grid;place-items:center;position:relative;overflow:hidden}
-.animal-box .ani{font-size:92px;line-height:1;transition:transform .4s}
-.animal-box svg.net{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .6s}
+svg.art{display:block;width:100%;height:100%;overflow:visible}
+.animal-box{flex:none;width:200px;height:200px;border-radius:28px;display:grid;place-items:center;position:relative;overflow:hidden}
+.animal-box .ani{width:92%;height:92%;transition:transform .4s}
+.animal-box svg.net{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.net .fall{animation:netfall 1.1s ease-in forwards;transform-box:fill-box;transform-origin:center}
+@keyframes netfall{0%{opacity:1}100%{transform:translateY(46px) rotate(14deg);opacity:0}}
+.net .stub.new{animation:fray .5s ease-out}
+@keyframes fray{from{opacity:0}}
 .animal-box.wiggle .ani{animation:wiggle .6s}
 @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.05)}75%{transform:rotate(10deg) scale(1.05)}}
 .animal-name{text-align:center;font-family:"Jua";font-size:18px;margin-top:6px}
@@ -133,7 +138,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .dex{margin-top:16px}
 .dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
 .dex-item{background:#f7f4ec;border-radius:18px;padding:10px 4px 8px;text-align:center}
-.dex-item .e{font-size:44px;line-height:1.1}
+.dex-item .e{width:64px;height:64px;margin:0 auto}
 .dex-item .nm{font-size:14px;margin-top:4px}
 .dex-item.locked .e{filter:grayscale(1) brightness(.2);opacity:.18}
 .dex-item.locked .nm{color:#b5c1bf}
@@ -149,7 +154,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .field input{border:2px solid #e4ebe9;border-radius:14px;padding:10px 12px;background:#fff}
 .pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:8px}
-.pick button{font-size:34px;background:#f5f1e8;border-radius:14px;padding:6px 0;border:3px solid transparent}
+.pick button{background:#f5f1e8;border-radius:14px;padding:4px;border:3px solid transparent;aspect-ratio:1}
 .pick button.on{border-color:var(--teal);background:#e8f6f2}
 .pick button[disabled]{opacity:.25}
 .m-actions{display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap}
@@ -158,7 +163,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .btn.danger{background:transparent;color:var(--coral)}
 
 .celebrate{text-align:center}
-.celebrate .swim{font-size:110px;display:inline-block;animation:swim 2.4s ease-in-out infinite}
+.celebrate .swim{width:170px;height:170px;display:inline-block;animation:swim 2.4s ease-in-out infinite}
 @keyframes swim{0%,100%{transform:translate(-30px,0) rotate(-6deg)}50%{transform:translate(30px,-14px) rotate(6deg)}}
 .celebrate h3{font-size:32px;color:var(--coral)}
 .stickers{font-size:34px;letter-spacing:6px;margin:6px 0 4px}
@@ -174,7 +179,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-cont
 .foot{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:14px;color:var(--ink-soft)}
 @media(max-width:560px){
   .stage{flex-direction:column}
-  .animal-box{width:130px;height:130px}
+  .animal-box{width:180px;height:180px}
   .chain{justify-content:center}
   .reward{position:static;display:inline-block;margin-top:6px}
 }
@@ -199,6 +204,180 @@ const ANIMALS = [
   {id:'squid',   e:'🦑', name:'오징어',   bg:'#fbe2e8'},
   {id:'shrimp',  e:'🦐', name:'새우',     bg:'#fde6d6'},
 ];
+/* ---------- 그림 (수채화 느낌 SVG, 200x200) ---------- */
+const sk = c => `stroke="${c}" stroke-opacity=".55" stroke-width="1.8" stroke-linejoin="round"`;
+const eye = (x, y, r = 3.6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#23303b"/><circle cx="${x - r*.3}" cy="${y - r*.38}" r="${r*.4}" fill="#fff"/>`;
+const blush = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="7" ry="4" fill="#f49a9a" opacity=".45"/>`;
+const ln = (d, c, w = 1.8, extra = '') => `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" ${extra}/>`;
+const shine = d => ln(d, '#fff', 5, 'stroke-opacity=".38"');
+const spots = (list, c, o = .45) => list.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${o}"/>`).join('');
+const mirror = s => `${s}<g transform="translate(200 0) scale(-1 1)">${s}</g>`;
+
+const crabHalf = `
+  ${ln('M60,116 C42,114 28,122 20,138', '#d9603f', 7)}${ln('M62,126 C46,132 36,144 33,160', '#d9603f', 7)}${ln('M70,134 C60,146 56,158 57,172', '#d9603f', 7)}
+  ${ln('M62,100 C50,94 44,84 45,70', '#e0704a', 10)}
+  <path d="M22,60 C16,42 30,28 47,30 C60,32 66,45 60,57 L49,51 C47,45 40,43 36,48 C33,54 39,60 48,60 L55,66 C47,75 29,75 22,60Z" fill="url(#gCrab)" ${sk('#a8432a')}/>
+  ${spots([[30,58,2.2],[40,38,2],[52,40,1.8]], '#ffd0b4', .7)}
+  ${ln('M88,86 L85,66', '#d9603f', 4)}${eye(85, 63, 5)}`;
+const octoArms = ['M66,100 C42,104 24,96 18,80 C14,68 26,62 32,72','M72,108 C50,124 30,128 22,146 C16,160 28,170 37,161','M84,114 C76,140 58,152 59,172 C61,185 76,185 75,174','M100,116 C101,140 92,160 100,180 C106,190 119,185 113,176','M116,114 C126,138 145,148 145,168 C145,181 131,183 131,173','M128,108 C150,122 171,124 178,142 C182,156 168,163 164,152','M134,100 C158,104 176,96 182,80 C186,68 174,62 168,72'];
+const squidArms = Array.from({length: 8}, (_, i) => { const x = 81 + i * 5.4, w = (i % 2 ? 7 : -7); return `M${x},126 C${x + w},144 ${x - w},158 ${x + w * .6},${170 + (i % 3) * 4}`; });
+/* 새우 몸통: C자 곡선을 따라 껍데기 마디를 꼬리부터 겹쳐 그림 */
+const SR = 40, shrimpSeg = k => { const th = (-62 + k * 26) * Math.PI / 180; return {th, t: 20 - k * 1.5, x: 124 + SR * Math.cos(th), y: 104 + SR * Math.sin(th)}; };
+const shrimpBody = Array.from({length: 8}, (_, i) => 7 - i).map(k => { const s = shrimpSeg(k), deg = (s.th * 180 / Math.PI).toFixed(1);
+  return `<ellipse cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" rx="${s.t.toFixed(1)}" ry="${(s.t * .95).toFixed(1)}" transform="rotate(${deg} ${s.x.toFixed(1)} ${s.y.toFixed(1)})" fill="url(#gShrimp)" ${sk('#b44f25')}/>`; }).join('');
+const shrimpTail = (() => { const s = shrimpSeg(7.15); return `translate(${s.x.toFixed(1)} ${s.y.toFixed(1)}) rotate(${(s.th * 180 / Math.PI + 90).toFixed(1)})`; })();
+const shrimpLegs = [1, 2, 3, 4, 5].map(k => { const s = shrimpSeg(k), ix = 124 + (SR - s.t) * Math.cos(s.th), iy = 104 + (SR - s.t) * Math.sin(s.th);
+  return ln(`M${ix.toFixed(1)},${iy.toFixed(1)} L${(ix - 11 * Math.cos(s.th) + 3).toFixed(1)},${(iy - 11 * Math.sin(s.th) + 4).toFixed(1)}`, '#e8794a', 2.6); }).join('');
+const pufferSpikes = Array.from({length: 18}, (_, i) => {
+  const a = i / 18 * Math.PI * 2, p = (ang, r) => `${(100 + Math.cos(ang) * r).toFixed(1)},${(105 + Math.sin(ang) * r).toFixed(1)}`;
+  return `<path d="M${p(a - .07, 60)} L${p(a, 74)} L${p(a + .07, 60)}Z" fill="#d49a3c"/>`;
+}).join('');
+
+const ART = {
+  dolphin: `
+    <path d="M30,176 q-6,-8 0,-14 q6,6 0,14z M20,160 q-4,-6 0,-10 q4,4 0,10z" fill="#9cc7e3" opacity=".8"/>
+    <path d="M50,154 C42,162 28,168 14,167 C24,158 30,148 33,137 C38,148 44,152 50,154Z" fill="url(#gDol)" ${sk('#3d5f86')}/>
+    <path d="M55,158 C54,171 48,182 39,190 C54,185 63,174 64,161Z" fill="url(#gDol)" ${sk('#3d5f86')}/>
+    <path d="M104,80 C107,62 118,47 133,41 C128,54 128,66 133,71Z" fill="#6c8fb6" ${sk('#3d5f86')}/>
+    <path d="M44,152 C62,112 97,72 141,62 C161,58 176,64 183,74 L196,79 C198,84 193,87 184,86 C176,93 165,100 150,105 C120,113 92,130 62,162 C56,160 48,157 44,152Z" fill="url(#gDol)" ${sk('#3d5f86')}/>
+    <path d="M62,160 C88,130 120,110 156,99 C168,95 178,90 185,86 C178,95 165,103 150,108 C121,117 92,135 66,162Z" fill="#eef4f8" opacity=".9"/>
+    <path d="M122,109 C120,125 112,137 101,143 C119,140 133,127 137,111Z" fill="#6c8fb6" ${sk('#3d5f86')}/>
+    ${shine('M72,118 C92,94 116,78 142,70')}
+    ${eye(165, 74, 3.4)}${ln('M183,85 Q172,91 160,88', '#3d5f86')}${blush(158, 90)}`,
+  crab: `${mirror(crabHalf)}
+    <ellipse cx="100" cy="112" rx="54" ry="35" fill="url(#gCrab)" ${sk('#a8432a')}/>
+    ${shine('M60,102 C78,86 122,86 140,102')}
+    ${spots([[80,100,3],[96,93,2.5],[118,97,3],[110,110,2],[88,113,2.4],[126,113,2.6],[70,116,2]], '#ffc6a6', .8)}
+    ${ln('M92,124 Q100,130 108,124', '#8a3520', 2)}${blush(76, 120)}${blush(124, 120)}`,
+  turtle: `
+    <path d="M118,84 C130,64 146,54 163,52 C155,67 141,81 127,91Z" fill="#7f8c52" ${sk('#4d5a2e')}/>
+    <path d="M60,126 C42,138 27,150 18,167 C41,165 59,153 71,135Z" fill="url(#gSkin)" ${sk('#4d5a2e')}/>
+    <path d="M138,100 C148,84 171,81 184,91 C191,100 185,112 172,114 C160,116 148,112 138,106Z" fill="url(#gSkin)" ${sk('#4d5a2e')}/>
+    <path d="M32,118 C66,128 130,126 156,112 C152,121 141,128 128,130 C96,134 58,132 36,126Z" fill="#d8d09a" ${sk('#7a7344')}/>
+    <path d="M32,118 C34,80 68,57 105,59 C137,61 156,84 156,112 C130,122 68,124 32,118Z" fill="url(#gShell)" ${sk('#3d5128')}/>
+    <g stroke="#ece4b6" stroke-width="2" stroke-opacity=".85" fill="#fff" fill-opacity=".1" stroke-linejoin="round">
+      <path d="M80,72 L104,67 L121,78 L117,98 L92,102 L76,91Z"/><path d="M48,100 L76,91 L92,102 L84,118 L44,116Z"/>
+      <path d="M117,98 L121,78 L141,86 L150,106 L138,116 L104,119Z"/><path d="M92,102 L117,98 L104,119 L84,118Z"/>
+      <path d="M58,82 L80,72 L76,91 L48,100 C50,92 52,88 58,82Z"/></g>
+    ${shine('M56,78 C70,66 90,62 108,63')}
+    <path d="M118,126 C128,149 140,164 158,176 C159,156 149,138 135,123Z" fill="url(#gSkin)" ${sk('#4d5a2e')}/>
+    ${spots([[160,92,2.2],[166,104,1.8],[151,99,1.6],[140,150,2],[146,160,1.8],[40,150,2]], '#6b7840', .5)}
+    ${eye(174, 96, 3.2)}${ln('M185,104 Q179,109 171,108', '#4d5a2e')}${blush(166, 108)}`,
+  octopus: `
+    ${octoArms.map(d => ln(d, '#8a6bb3', 15, 'stroke-opacity=".45"')).join('')}
+    ${octoArms.map(d => ln(d, '#ab8dce', 12)).join('')}
+    ${octoArms.map(d => ln(d, '#f1e0f6', 3.6, 'stroke-dasharray="0.1 8"')).join('')}
+    <path d="M100,24 C136,24 152,52 150,80 C148,102 132,114 100,116 C68,114 52,102 50,80 C48,52 64,24 100,24Z" fill="url(#gOcto)" ${sk('#6b4f94')}/>
+    <ellipse cx="84" cy="44" rx="15" ry="8" fill="#fff" opacity=".3" transform="rotate(-25 84 44)"/>
+    ${spots([[70,60,2.4],[124,52,2.8],[132,72,2],[110,40,2],[66,82,1.8],[100,60,1.6]], '#7c5ea8', .35)}
+    ${eye(84, 82, 5)}${eye(116, 82, 5)}${ln('M76,75 Q84,70 92,75', '#5a3f80', 2)}${ln('M108,75 Q116,70 124,75', '#5a3f80', 2)}
+    ${ln('M95,99 Q100,103 105,99', '#5a3f80', 2)}${blush(72, 95)}${blush(128, 95)}`,
+  whale: `
+    ${ln('M128,52 C126,40 118,34 110,32 M128,52 C130,40 138,34 146,32 M128,52 L128,32', '#8cc3e6', 3)}
+    ${spots([[108,29,3.2],[148,29,3.2],[128,27,3.2]], '#8cc3e6', .9)}
+    <path d="M44,106 C34,102 26,96 21,88 C10,80 5,66 8,52 C16,62 22,68 29,70 C29,58 35,48 45,44 C41,60 37,76 34,88 C38,94 44,98 48,100Z" fill="url(#gWhale)" ${sk('#2d5482')}/>
+    <path d="M38,104 C48,70 90,54 136,58 C172,62 192,88 188,114 C184,140 152,152 112,150 C76,148 50,136 38,104Z" fill="url(#gWhale)" ${sk('#2d5482')}/>
+    <path d="M62,132 C92,150 150,152 184,124 C178,141 150,152 112,150 C88,149 72,142 62,132Z" fill="#dcebf5" ${sk('#2d5482')}/>
+    ${ln('M92,142 C120,150 150,148 170,138 M100,147 C124,152 150,150 164,145', '#a9c6dd', 1.5)}
+    <path d="M120,128 C114,145 102,154 88,159 C105,161 122,152 130,135Z" fill="#4e7fb3" ${sk('#2d5482')}/>
+    ${shine('M70,86 C92,70 120,64 146,66')}
+    ${spots([[80,96,2],[96,84,1.6],[66,110,1.8]], '#c8def0', .7)}
+    ${eye(152, 104, 3.8)}${ln('M162,121 Q172,125 182,118', '#2d5482', 2)}${blush(158, 116)}`,
+  seal: `
+    <path d="M64,166 C48,172 30,171 18,161 C32,157 46,154 58,150Z" fill="#8a8378" ${sk('#5c564d')}/>
+    <path d="M62,170 C40,150 44,108 84,90 C110,80 150,92 160,120 C170,150 150,172 110,174 C90,175 74,174 62,170Z" fill="url(#gSeal)" ${sk('#5c564d')}/>
+    <path d="M100,112 C122,106 148,120 152,140 C154,160 136,170 114,170 C102,150 96,130 100,112Z" fill="#f1ede6" opacity=".65"/>
+    <ellipse cx="124" cy="76" rx="40" ry="34" fill="url(#gSeal)" ${sk('#5c564d')}/>
+    ${shine('M98,56 C108,46 126,42 140,46')}
+    <path d="M118,138 C121,155 115,166 104,172 C125,171 138,158 136,140Z" fill="#8a8378" ${sk('#5c564d')}/>
+    ${spots([[78,120,3.4],[70,140,2.6],[90,150,3],[84,104,2.2],[150,60,2],[98,64,2.2]], '#6f685e', .35)}
+    <ellipse cx="125" cy="89" rx="15" ry="10" fill="#f2ede4"/>
+    <ellipse cx="125" cy="83" rx="5.5" ry="3.8" fill="#3a332c"/>
+    ${ln('M119,93 Q125,97 131,93', '#5c564d', 1.6)}
+    ${ln('M112,88 L94,84 M112,92 L94,95 M138,88 L156,84 M138,92 L156,95', '#7d766b', 1)}
+    ${eye(108, 70, 6)}${eye(142, 70, 6)}${blush(100, 86)}${blush(150, 86)}`,
+  penguin: `
+    <ellipse cx="86" cy="178" rx="13" ry="6" fill="#f4a442" ${sk('#b8701c')}/><ellipse cx="114" cy="178" rx="13" ry="6" fill="#f4a442" ${sk('#b8701c')}/>
+    <path d="M52,96 C38,110 33,130 37,148 C47,136 55,120 57,104Z" fill="#2f3a4a" ${sk('#151b24')}/>
+    <path d="M148,96 C162,110 167,130 163,148 C153,136 145,120 143,104Z" fill="#2f3a4a" ${sk('#151b24')}/>
+    <path d="M100,24 C137,24 153,60 153,104 C153,150 133,179 100,179 C67,179 47,150 47,104 C47,60 63,24 100,24Z" fill="url(#gPeng)" ${sk('#151b24')}/>
+    <path d="M100,42 C115,42 125,51 125,62 C134,74 138,96 138,120 C138,152 123,171 100,171 C77,171 62,152 62,120 C62,96 66,74 75,62 C75,51 85,42 100,42Z" fill="#f8f4ec" ${sk('#9a9486')}/>
+    <ellipse cx="84" cy="34" rx="11" ry="5" fill="#fff" opacity=".22" transform="rotate(-20 84 34)"/>
+    ${ln('M78,120 C80,140 90,156 100,160', '#e4ddd0', 4)}
+    ${eye(88, 62, 4.6)}${eye(112, 62, 4.6)}
+    <path d="M91,72 Q100,68 109,72 L100,83Z" fill="#f4a442" ${sk('#b8701c')}/>${blush(79, 76)}${blush(121, 76)}`,
+  fish: `
+    ${ln('M176,72 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 M184,56 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M176,44 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0', '#8cc3e6', 1.5)}
+    <path d="M46,100 L14,68 C22,90 22,110 14,132Z" fill="#f08a3e" ${sk('#a8501d')}/>
+    ${ln('M18,80 L40,100 M18,120 L40,100 M17,100 L40,100', '#ffd29a', 1.4)}
+    <path d="M76,66 C92,38 124,42 142,72Z" fill="#e8742f" ${sk('#a8501d')}/>
+    <path d="M86,134 C98,152 120,152 132,128Z" fill="#e8742f" ${sk('#a8501d')}/>
+    <path d="M40,100 C60,60 120,52 158,90 C165,96 165,104 158,110 C120,148 60,140 40,100Z" fill="url(#gFish)" ${sk('#a8501d')}/>
+    <path d="M80,67 C70,87 70,114 80,134 L93,138 C85,116 85,86 93,63Z" fill="#fffaf0" stroke="#3a2a20" stroke-width="2"/>
+    <path d="M120,62 C112,84 112,116 120,137 L130,132 C124,114 124,88 130,67Z" fill="#fffaf0" stroke="#3a2a20" stroke-width="2"/>
+    ${shine('M58,84 C74,68 98,62 118,64')}
+    <path d="M118,104 C110,112 106,122 108,130 C118,124 124,114 124,106Z" fill="#f7a250" ${sk('#a8501d')}/>
+    <circle cx="144" cy="90" r="7" fill="#fff" ${sk('#a8501d')}/>${eye(145, 90, 4.2)}
+    ${ln('M160,104 Q156,108 151,106', '#a8501d', 1.8)}${blush(140, 106)}`,
+  puffer: `
+    <path d="M42,104 L14,84 C20,98 20,112 14,126Z" fill="#e8b24c" ${sk('#9a6a1c')}/>
+    ${pufferSpikes}
+    <circle cx="100" cy="105" r="62" fill="url(#gPuff)" ${sk('#9a6a1c')}/>
+    <path d="M44,122 C60,168 140,168 156,122 C140,146 60,146 44,122Z" fill="#fdf3d6"/>
+    ${shine('M58,78 C70,58 92,48 114,48')}
+    ${spots([[80,62,3],[100,55,3.4],[120,62,3],[68,80,2.4],[132,80,2.4],[92,70,2],[110,70,2],[140,96,2]], '#b47e2c', .45)}
+    <path d="M146,112 C160,106 168,114 166,126 C158,124 150,120 146,112Z" fill="#e8b24c" ${sk('#9a6a1c')}/>
+    <circle cx="82" cy="96" r="11" fill="#fff" ${sk('#9a6a1c')}/><circle cx="120" cy="96" r="11" fill="#fff" ${sk('#9a6a1c')}/>
+    ${eye(84, 97, 6.4)}${eye(122, 97, 6.4)}
+    <ellipse cx="102" cy="123" rx="5.5" ry="4.4" fill="#c46a4a"/>${blush(66, 116)}${blush(138, 116)}`,
+  shark: `
+    <path d="M30,108 L6,72 C14,94 14,108 8,142Z" fill="url(#gShark)" ${sk('#3b4e5c')}/>
+    <path d="M92,74 C100,52 110,38 124,32 C122,50 124,62 130,76Z" fill="#6f8696" ${sk('#3b4e5c')}/>
+    <path d="M22,110 C42,80 100,66 150,76 C172,80 188,96 191,108 C185,120 167,128 141,130 C101,136 52,130 22,110Z" fill="url(#gShark)" ${sk('#3b4e5c')}/>
+    <path d="M44,118 C82,132 132,132 188,113 C178,125 162,130 141,132 C101,137 64,132 44,118Z" fill="#f2f5f7" ${sk('#3b4e5c')}/>
+    <path d="M112,126 C108,142 98,154 88,160 C106,156 122,144 128,128Z" fill="#6f8696" ${sk('#3b4e5c')}/>
+    ${shine('M56,96 C82,82 116,76 146,80')}
+    ${ln('M136,95 Q132,103 136,111 M143,94 Q139,102 143,110 M150,94 Q146,102 150,110', '#4d6272', 1.6)}
+    ${eye(166, 96, 3.8)}${ln('M170,114 Q179,117 187,110', '#3b4e5c', 2)}${blush(160, 108)}`,
+  squid: `
+    ${ln('M90,126 C82,150 72,170 78,190', '#e68fa5', 5)}${ln('M110,126 C118,150 128,170 122,190', '#e68fa5', 5)}
+    <ellipse cx="78" cy="190" rx="6" ry="8" fill="#e68fa5"/><ellipse cx="122" cy="190" rx="6" ry="8" fill="#e68fa5"/>
+    ${squidArms.map(d => ln(d, '#ec9cb0', 7)).join('')}
+    ${squidArms.map(d => ln(d, '#fde4ea', 2.4, 'stroke-dasharray="0.1 6"')).join('')}
+    <path d="M72,44 L38,28 C44,48 54,60 68,70Z" fill="#ef9fb3" ${sk('#a94b65')}/>
+    <path d="M128,44 L162,28 C156,48 146,60 132,70Z" fill="#ef9fb3" ${sk('#a94b65')}/>
+    <path d="M100,14 C118,26 134,40 134,62 C136,90 130,112 122,130 L78,130 C70,112 64,90 66,62 C66,40 82,26 100,14Z" fill="url(#gSquid)" ${sk('#a94b65')}/>
+    <ellipse cx="88" cy="46" rx="6" ry="16" fill="#fff" opacity=".32"/>
+    ${spots([[110,40,2.4],[100,58,2],[116,70,2.6],[84,78,2],[104,86,2.2],[92,96,1.8],[118,96,1.8]], '#d96f89', .45)}
+    <circle cx="88" cy="112" r="8" fill="#fff" ${sk('#a94b65')}/><circle cx="112" cy="112" r="8" fill="#fff" ${sk('#a94b65')}/>
+    ${eye(89, 113, 4.8)}${eye(113, 113, 4.8)}${blush(76, 122)}${blush(124, 122)}`,
+  shrimp: `
+    ${ln('M98,54 C86,26 118,8 172,16 M102,50 C98,30 130,22 184,32', '#e8794a', 1.6)}
+    ${shrimpLegs}
+    <g transform="${shrimpTail}">
+      <path d="M0,0 L24,-15 Q30,0 24,15Z" fill="#f08a5a" ${sk('#b44f25')}/>${ln('M2,0 L26,-8 M2,0 L28,0 M2,0 L26,8', '#ffc9a8', 1.2)}</g>
+    ${shrimpBody}
+    ${ln('M150,78 C164,92 166,114 154,130', '#fff', 5, 'stroke-opacity=".38"')}
+    <ellipse cx="120" cy="62" rx="22" ry="15" transform="rotate(18 120 62)" fill="url(#gShrimp)" ${sk('#b44f25')}/>
+    <path d="M100,52 L78,46 L98,60Z" fill="#f08a5a" ${sk('#b44f25')}/>
+    ${eye(110, 56, 4)}${blush(118, 68)}`,
+};
+const G = (id, a, b) => `<linearGradient id="${id}" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="wc" x="-8%" y="-8%" width="116%" height="116%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="11" result="p"/>
+    <feColorMatrix in="p" type="matrix" values=".28 0 0 0 .76  .28 0 0 0 .76  .28 0 0 0 .76  0 0 0 0 1" result="pg"/>
+    <feComposite in="pg" in2="d" operator="in" result="pm"/>
+    <feBlend in="d" in2="pm" mode="multiply"/>
+  </filter>
+  ${G('gDol','#5d84ad','#aac5dd')}${G('gCrab','#f59e6c','#d9573a')}${G('gShell','#a0b87a','#58703f')}${G('gSkin','#cbd292','#8e9a5c')}
+  ${G('gOcto','#d8c2ec','#9577bf')}${G('gWhale','#74a4d3','#3f6fa3')}${G('gSeal','#d6d0c5','#958e83')}${G('gPeng','#4a5b72','#232c39')}
+  ${G('gFish','#ffc56e','#f2793a')}${G('gPuff','#f9e09a','#e2a944')}${G('gShark','#a3b6c5','#5f7686')}${G('gSquid','#f9c8d3','#e2849b')}${G('gShrimp','#ffbb90','#f0784a')}
+</defs></svg>`);
+const art = (id, cls = '') => `<svg class="art ${cls}" viewBox="0 0 200 200" aria-hidden="true"><g filter="url(#wc)">${ART[id] || ''}</g></svg>`;
+
 const LINKS = 7, LINK_XP = 30, RESCUE_XP = 50, STICKERS = 3, KEY = 'sea-rescue-v1';
 const A = id => ANIMALS.find(a => a.id === id) || ANIMALS[0];
 
@@ -312,7 +491,7 @@ function rescue(){
   sfx.rescue(); confetti(80);
   openModal(`
     <div class="celebrate">
-      <div class="swim">${a.e}</div>
+      <div class="swim">${art(a.id)}</div>
       <h3>${esc(a.name)} 구조 성공!</h3>
       <div class="stickers">⭐⭐⭐</div>
       <p class="muted">스티커 ${STICKERS}개를 받았어요. 도감에 ${esc(a.name)}가 들어갔어요.</p>
@@ -328,7 +507,7 @@ function rescue(){
 function nextChoices(s){
   const left = ANIMALS.filter(a => !s.rescued.includes(a.id));
   const list = left.length ? left : ANIMALS;
-  return list.map(a => `<button data-id="${a.id}" title="${esc(a.name)}">${a.e}</button>`).join('');
+  return list.map(a => `<button data-id="${a.id}" title="${esc(a.name)}">${art(a.id)}</button>`).join('');
 }
 function toggleQuest(id){
   const s = cur(), q = s.quests.find(q => q.id === id); if (!q) return;
@@ -368,7 +547,7 @@ function studentForm(s){
     <label class="field">이름<input id="fName" maxlength="12" value="${esc(s.name)}" placeholder="예: 지우"></label>
     <label class="field">학년·메모<input id="fGrade" maxlength="16" value="${esc(s.grade)}" placeholder="예: 초3"></label>
     <div class="field">내 짝꿍 캐릭터
-      <div class="pick" id="buddyPick">${ANIMALS.map(a => `<button data-id="${a.id}" class="${a.id===s.buddy?'on':''}">${a.e}</button>`).join('')}</div>
+      <div class="pick" id="buddyPick">${ANIMALS.map(a => `<button data-id="${a.id}" class="${a.id===s.buddy?'on':''}" title="${esc(a.name)}">${art(a.id)}</button>`).join('')}</div>
     </div>
     <div class="m-actions">
       ${isNew ? '<span></span>' : '<button class="btn danger" id="fDel">학생 삭제</button>'}
@@ -432,13 +611,49 @@ function backupMenu(){
 }
 
 /* ---------- 화면 ---------- */
-function netSVG(opacity){
-  let lines = '';
-  for (let i = -150; i <= 300; i += 22){
-    lines += `<line x1="${i}" y1="0" x2="${i+150}" y2="150"/><line x1="${i+150}" y1="0" x2="${i}" y2="150"/>`;
+/* 그물: 마름모 매듭 그물을 7조각으로 나눠 두고, 고리를 하나 끊을 때마다 가운데부터 한 조각씩 뜯겨 나감 */
+const NET = (() => {
+  let seed = 20261116; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const W = 22, H = 12, edge = x => 64 + x * 0.24;            /* 윗줄(밧줄) 위치 */
+  const pts = {}; const P = (i, j) => { const k = i + ',' + j;
+    return pts[k] || (pts[k] = {id:k, x:+(i*W + (j%2 ? W/2 : 0) + (rnd()-.5)*3).toFixed(1), y:+(48 + j*H + (rnd()-.5)*3).toFixed(1)}); };
+  const segs = [];
+  for (let j = 0; j < 14; j++) for (let i = -1; i <= 10; i++){
+    const a = P(i, j), nb = j % 2 ? [P(i, j+1), P(i+1, j+1)] : [P(i-1, j+1), P(i, j+1)];
+    nb.forEach(b => { const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+      if (my > edge(mx) + 2 && mx > -12 && mx < 212) segs.push({a, b, d: Math.hypot(mx-104, my-120) + rnd()*34}); });
   }
-  return `<svg class="net" viewBox="0 0 150 150" style="opacity:${opacity}" aria-hidden="true">
-    <g stroke="#8b8f86" stroke-width="1.6" stroke-linecap="round" fill="none">${lines}</g></svg>`;
+  segs.sort((p, q) => p.d - q.d).forEach((s, i) => s.g = Math.min(LINKS - 1, Math.floor(i * LINKS / segs.length)));
+  const rope = Array.from({length: 23}, (_, k) => { const x = -10 + k * 10; return `${x},${(edge(x) + Math.sin(k / 22 * Math.PI) * 7).toFixed(1)}`; }).join(' ');
+  return {segs, rope, edge};
+})();
+function netSVG(links, snap){
+  const alive = new Map();
+  NET.segs.forEach(s => { if (s.g >= links){ alive.set(s.a.id, s.a); alive.set(s.b.id, s.b); } });
+  let mesh = '', torn = '', falling = '';
+  NET.segs.forEach(s => {
+    const seg = `M${s.a.x},${s.a.y} L${s.b.x},${s.b.y}`;
+    if (s.g >= links){ mesh += seg + ' '; return; }
+    if (s.g === snap) falling += `<path class="fall" d="${seg}" style="animation-delay:${(Math.random()*.25).toFixed(2)}s"/>`;
+    /* 끊긴 실: 아직 남은 매듭에서 짧게 늘어진 끄트머리 */
+    [[s.a, s.b], [s.b, s.a]].forEach(([p, q]) => {
+      if (!alive.has(p.id)) return;
+      const ex = p.x + (q.x - p.x) * .34, ey = p.y + (q.y - p.y) * .34 + 4;
+      torn += `<path class="stub ${s.g === snap ? 'new' : ''}" d="M${p.x},${p.y} Q${((p.x+ex)/2).toFixed(1)},${(p.y + 1).toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}"/>`;
+    });
+  });
+  const knots = [...alive.values()].map(p => `<circle cx="${p.x}" cy="${p.y}" r="1.7"/>`).join('');
+  const ropeOn = links < LINKS, ropeFall = snap === LINKS - 1;
+  const sag = Math.min(links, LINKS - 1) * 2.5;              /* 끊을수록 그물이 조금씩 축 처짐 */
+  return `<svg class="net" viewBox="0 0 200 200" aria-hidden="true">
+    <g transform="translate(0 ${sag})" fill="none" stroke-linecap="round">
+      <path d="${mesh}" stroke="#fffaf0" stroke-opacity=".7" stroke-width="3"/>
+      <path d="${mesh}" stroke="#8f8878" stroke-width="1.5"/>
+      <g stroke="#8f8878" stroke-width="1.4">${torn}${falling}</g>
+      <g fill="#7d7666">${knots}</g>
+      ${ropeOn || ropeFall ? `<polyline class="${ropeFall ? 'fall' : ''}" points="${NET.rope}" stroke="#8a7d62" stroke-width="3.6"/>
+        <polyline class="${ropeFall ? 'fall' : ''}" points="${NET.rope}" stroke="#c9b991" stroke-width="1.4" stroke-dasharray="3 3"/>` : ''}
+    </g></svg>`;
 }
 
 function render(opt = {}){
@@ -474,7 +689,7 @@ function render(opt = {}){
       ${state.students.map(st => {
         const pending = st.lastBreak !== today();
         return `<button class="tab ${st.id===s.id?'on':''}" data-sid="${st.id}">
-          <span class="em">${A(st.buddy).e}</span>${esc(st.name)}${pending?'<span class="dot" title="오늘 고리 아직"></span>':''}</button>`;
+          <span class="em">${art(A(st.buddy).id)}</span>${esc(st.name)}${pending?'<span class="dot" title="오늘 고리 아직"></span>':''}</button>`;
       }).join('')}
       <button class="tab add" id="addStudent">＋ 학생 추가</button>
     </nav>
@@ -483,7 +698,7 @@ function render(opt = {}){
       <div>
         <section class="card">
           <div class="profile">
-            <div class="buddy">${A(s.buddy).e}<span class="lv">Lv.${lv}</span></div>
+            <div class="buddy">${art(A(s.buddy).id)}<span class="lv">Lv.${lv}</span></div>
             <div class="pinfo">
               <div class="pname">
                 <h2>${esc(s.name)}</h2>
@@ -508,7 +723,7 @@ function render(opt = {}){
           <div class="stage">
             <div>
               <div class="animal-box" style="background:${a.bg}">
-                <span class="ani">${a.e}</span>${netSVG(Math.max(0, 0.95 - links * 0.12))}
+                <span class="ani">${art(a.id)}</span>${netSVG(links, opt.snap)}
               </div>
               <div class="animal-name">${links}/${LINKS} 끊음</div>
             </div>
@@ -555,7 +770,7 @@ function render(opt = {}){
             ${ANIMALS.map(x => {
               const got = s.rescued.includes(x.id), now = x.id === a.id && !got;
               return `<div class="dex-item ${got?'got':'locked'} ${now?'now':''}">
-                <div class="e">${x.e}</div><div class="nm">${got ? esc(x.name) : (now ? '구조 중' : '???')}</div></div>`;
+                <div class="e">${art(x.id)}</div><div class="nm">${got ? esc(x.name) : (now ? '구조 중' : '???')}</div></div>`;
             }).join('')}
           </div>
         </section>
