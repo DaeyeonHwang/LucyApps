@@ -675,13 +675,29 @@ function studentForm(s){
   };
 }
 
+/* 백업 파일 이름: 어느 학생 태블릿에서 온 건지 알아보기 쉽게 학생 이름을 넣음 */
+const backupName = ext => `바다구조대-백업-${state.students.map(s => s.name).join('_').replace(/[\\/:*?"<>|\s]+/g, '').slice(0, 30)}-${today()}.${ext}`;
+/* 안드로이드 공유 창으로 백업 보내기. Chrome은 .json 파일 공유를 막아서 내용은 같고 확장자만 .txt로 보냄 */
+async function shareBackup(){
+  const text = JSON.stringify(state, null, 2);
+  const file = new File([text], backupName('txt'), {type: 'text/plain'});
+  if (navigator.canShare && navigator.canShare({files: [file]})){
+    try {
+      await navigator.share({files: [file], title: '바다 구조대 백업', text: `바다 구조대 백업 (${today()})`});
+      toast('백업을 보냈어요');
+    } catch(e){ if (e.name !== 'AbortError') alert('보내지 못했어요. "백업 파일 받기"로 저장해 주세요.'); }
+  } else {
+    alert('이 기기에서는 바로 보내기가 안 돼요. "백업 파일 받기"로 저장한 뒤 메일에 첨부해 주세요.');
+  }
+}
 function backupMenu(){
   openModal(`
     <h3>백업과 설정</h3>
     <p class="muted" style="margin-top:0">기록은 이 기기의 브라우저에 저장돼요. 다른 기기로 옮기거나 혹시 몰라 보관하려면 백업 파일을 받아 두세요.</p>
     <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn primary" id="bShare">📤 백업 보내기 (메일·카톡)</button>
       <button class="btn" id="bExport">💾 백업 파일 받기</button>
-      <label class="btn" style="text-align:center;cursor:pointer">📂 백업 파일 불러오기<input type="file" id="bImport" accept=".json,application/json" hidden></label>
+      <label class="btn" style="text-align:center;cursor:pointer">📂 백업 파일 불러오기<input type="file" id="bImport" accept=".json,.txt,application/json,text/plain" hidden></label>
       <button class="btn" id="bSound">${state.sound ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button>
       <button class="btn" id="bPin">🔒 선생님 비밀번호 ${state.pin ? '바꾸기' : '정하기'}</button>
     </div>
@@ -690,10 +706,11 @@ function backupMenu(){
   document.getElementById('bClose').onclick = closeModal;
   document.getElementById('bPin').onclick = pinMenu;
   document.getElementById('bSound').onclick = () => { state.sound = !state.sound; save(); backupMenu(); };
+  document.getElementById('bShare').onclick = shareBackup;
   document.getElementById('bExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `바다구조대-백업-${today()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    a.download = backupName('json'); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
   document.getElementById('bImport').onchange = e => {
     const f = e.target.files[0]; if (!f) return;
