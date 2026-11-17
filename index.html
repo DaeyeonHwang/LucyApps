@@ -176,11 +176,16 @@ svg.art{display:block;width:100%;height:100%;overflow:visible}
 .bubble{position:absolute;bottom:-20px;border-radius:50%;border:2px solid rgba(63,148,138,.35);pointer-events:none;animation:rise linear forwards}
 @keyframes rise{to{transform:translateY(-190px);opacity:0}}
 
+.t-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff4dc;border:2px dashed #f0c56b;border-radius:18px;padding:10px 14px;margin-bottom:12px;font-size:15px}
+.t-bar b{font-family:"Jua";font-weight:400;font-size:18px}
+body.teacher{background-color:#fbf3e6}
+.t-door{font-size:13px;color:#b6c4c1;padding:8px 14px;border-radius:999px}
+.t-door:active{background:#eef3f1}
 .foot{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:14px;color:var(--ink-soft)}
 @media(max-width:560px){
   .stage{flex-direction:column}
   .animal-box{width:180px;height:180px}
-  .chain{justify-content:center}
+  .chain{justify-content:center;width:100%;flex:none}
   .reward{position:static;display:inline-block;margin-top:6px}
 }
 </style>
@@ -585,10 +590,12 @@ function backupMenu(){
       <button class="btn" id="bExport">💾 백업 파일 받기</button>
       <label class="btn" style="text-align:center;cursor:pointer">📂 백업 파일 불러오기<input type="file" id="bImport" accept=".json,application/json" hidden></label>
       <button class="btn" id="bSound">${state.sound ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button>
+      <button class="btn" id="bPin">🔒 선생님 비밀번호 ${state.pin ? '바꾸기' : '정하기'}</button>
     </div>
     <div class="m-actions"><span></span><button class="btn primary" id="bClose">닫기</button></div>
   `);
   document.getElementById('bClose').onclick = closeModal;
+  document.getElementById('bPin').onclick = pinMenu;
   document.getElementById('bSound').onclick = () => { state.sound = !state.sound; save(); backupMenu(); };
   document.getElementById('bExport').onclick = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
@@ -658,6 +665,8 @@ function netSVG(links, snap){
 
 function render(opt = {}){
   dailyReset();
+  const T = isTeacher();
+  document.body.classList.toggle('teacher', T);
   const s = cur(); state.selected = s.id;
   const a = A(s.current.animal), links = s.current.links;
   const doneToday = s.lastBreak === today();
@@ -680,10 +689,12 @@ function render(opt = {}){
       </div>
       <div class="head-right">
         <span class="clock" id="clock">${dateStr}</span>
-        ${installEvt ? '<button class="icon-btn" id="installBtn" style="background:var(--teal);color:#fff">📲 앱 설치</button>' : ''}
-        <button class="icon-btn" id="menuBtn">⚙️ 백업·설정</button>
+        ${T && installEvt ? '<button class="icon-btn" id="installBtn" style="background:var(--teal);color:#fff">📲 앱 설치</button>' : ''}
+        ${T ? '<button class="icon-btn" id="menuBtn">⚙️ 백업·설정</button>' : ''}
       </div>
     </header>
+    ${T ? `<div class="t-bar"><span>👩‍🏫 <b>선생님 화면</b> · 여기서 바꾼 내용이 학생 화면에 바로 보여요</span>
+      <button class="btn primary" id="toDisplay">학생 화면으로 ↩</button></div>` : ''}
 
     <nav class="tabs">
       ${state.students.map(st => {
@@ -691,7 +702,7 @@ function render(opt = {}){
         return `<button class="tab ${st.id===s.id?'on':''}" data-sid="${st.id}">
           <span class="em">${art(A(st.buddy).id)}</span>${esc(st.name)}${pending?'<span class="dot" title="오늘 고리 아직"></span>':''}</button>`;
       }).join('')}
-      <button class="tab add" id="addStudent">＋ 학생 추가</button>
+      ${T ? '<button class="tab add" id="addStudent">＋ 학생 추가</button>' : ''}
     </nav>
 
     <div class="grid">
@@ -703,7 +714,7 @@ function render(opt = {}){
               <div class="pname">
                 <h2>${esc(s.name)}</h2>
                 ${s.grade ? `<span class="chip">${esc(s.grade)}</span>` : ''}
-                <button class="chip edit" id="editStudent">✏️ 수정</button>
+                ${T ? '<button class="chip edit" id="editStudent">✏️ 수정</button>' : ''}
               </div>
               <div class="xp"><div class="bar"><i style="width:${pct}%"></i></div><b>${pct}/100</b></div>
               <div class="stats">
@@ -734,10 +745,11 @@ function render(opt = {}){
               ? `<button class="big-btn" disabled>오늘 고리 끊기 완료! 내일 또 만나요 🌊</button>`
               : `<button class="big-btn" id="breakBtn">✂️ 오늘 지문 끝! 고리 끊기</button>`}
           </div>
-          <div class="actions" style="margin-top:6px">
-            ${doneToday && links < LINKS ? `<button class="small-link" id="forceBtn">선생님: 밀린 날 채우기(하나 더 끊기)</button>` : ''}
+          ${T ? `<div class="actions" style="margin-top:6px">
+            ${doneToday && links < LINKS ? `<button class="small-link" id="forceBtn">밀린 날 채우기(하나 더 끊기)</button>` : ''}
             ${links ? `<button class="small-link" id="undoBtn">마지막 고리 되돌리기</button>` : ''}
-          </div>
+            <button class="small-link" id="swapBtn">구할 친구 바꾸기</button>
+          </div>` : ''}
         </section>
       </div>
 
@@ -753,15 +765,15 @@ function render(opt = {}){
                 <button class="check" data-q="${q.id}" aria-label="완료">${q.done?'✓':''}</button>
                 <span class="txt">${esc(q.text)}</span>
                 <span class="pts">+${q.xp}</span>
-                <button class="del" data-del="${q.id}" aria-label="삭제">×</button>
-              </li>`).join('') || '<li class="muted">퀘스트를 추가해 보세요</li>'}
+                ${T ? `<button class="del" data-del="${q.id}" aria-label="삭제">×</button>` : ''}
+              </li>`).join('') || `<li class="muted">${T ? '퀘스트를 추가해 보세요' : '오늘은 퀘스트가 없어요'}</li>`}
           </ul>
-          <div class="q-add">
+          ${T ? `<div class="q-add">
             <input id="qText" placeholder="퀘스트 추가 (예: 단어 5개 외우기)" maxlength="30">
             <select id="qXp"><option>10</option><option>15</option><option selected>20</option><option>30</option></select>
             <button id="qAdd" aria-label="추가">＋</button>
           </div>
-          <div style="text-align:right;margin-top:8px"><button class="small-link" id="qReset">체크 모두 풀기</button></div>
+          <div style="text-align:right;margin-top:8px"><button class="small-link" id="qReset">체크 모두 풀기</button></div>` : ''}
         </section>
 
         <section class="card dex">
@@ -776,25 +788,87 @@ function render(opt = {}){
         </section>
       </div>
     </div>
-    <p class="foot">기록은 이 기기 브라우저에 저장돼요 · 가끔 ⚙️에서 백업 파일을 받아 두세요</p>
+    ${T ? '<p class="foot">기록은 이 기기 브라우저에 저장돼요 · 가끔 ⚙️에서 백업 파일을 받아 두세요</p>'
+        : '<p class="foot"><button class="t-door" id="toTeacher">선생님</button></p>'}
   `;
 
   /* 이벤트 연결 */
   document.querySelectorAll('[data-sid]').forEach(b => b.onclick = () => { state.selected = b.dataset.sid; save(); render(); });
-  document.getElementById('addStudent').onclick = () => studentForm(null);
-  document.getElementById('editStudent').onclick = () => studentForm(s);
-  document.getElementById('menuBtn').onclick = backupMenu;
-  const ib = document.getElementById('installBtn');
-  if (ib) ib.onclick = async () => { installEvt.prompt(); await installEvt.userChoice; installEvt = null; render(); };
-  const br = document.getElementById('breakBtn'); if (br) br.onclick = () => breakLink(false);
-  const fb = document.getElementById('forceBtn'); if (fb) fb.onclick = () => { if (confirm('오늘 이미 하나 끊었어요. 밀린 날을 채우려고 하나 더 끊을까요?')) breakLink(true); };
-  const ub = document.getElementById('undoBtn'); if (ub) ub.onclick = undoLink;
+  const on = (id, fn, ev = 'onclick') => { const el = document.getElementById(id); if (el) el[ev] = fn; };
+  /* 학생 화면에서도 되는 것: 학생 고르기, 고리 끊기, 퀘스트 체크, 선생님 화면 들어가기 */
+  on('breakBtn', () => breakLink(false));
   document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => toggleQuest(b.dataset.q));
+  on('toTeacher', enterTeacher);
+  if (!T) return;
+  /* 선생님 화면에서만 되는 것 */
+  on('toDisplay', () => { unlocked = false; location.hash = ''; });
+  on('addStudent', () => studentForm(null));
+  on('editStudent', () => studentForm(s));
+  on('menuBtn', backupMenu);
+  on('installBtn', async () => { installEvt.prompt(); await installEvt.userChoice; installEvt = null; render(); });
+  on('forceBtn', () => { if (confirm('오늘 이미 하나 끊었어요. 밀린 날을 채우려고 하나 더 끊을까요?')) breakLink(true); });
+  on('undoBtn', undoLink);
+  on('swapBtn', swapAnimal);
   document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => delQuest(b.dataset.del));
-  document.getElementById('qAdd').onclick = addQuest;
-  document.getElementById('qText').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) addQuest(); };
-  document.getElementById('qReset').onclick = resetQuests;
+  on('qAdd', addQuest);
+  on('qText', e => { if (e.key === 'Enter' && !e.isComposing) addQuest(); }, 'onkeydown');
+  on('qReset', resetQuests);
 }
+
+/* ---------- 선생님 화면 ---------- */
+let unlocked = false;   /* 비밀번호를 맞게 넣으면 이 창이 열려 있는 동안만 선생님 화면 */
+const isTeacher = () => location.hash === '#teacher' && (!state.pin || unlocked);
+function enterTeacher(){
+  if (!state.pin){ location.hash = 'teacher'; return; }
+  if (location.hash === '#teacher') history.replaceState(null, '', location.pathname);
+  openModal(`
+    <h3>선생님 화면</h3>
+    <label class="field">비밀번호<input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></label>
+    <p class="muted" id="pinMsg" style="margin:0;min-height:1.4em"></p>
+    <div class="m-actions"><span></span><span style="display:flex;gap:8px"><button class="btn" id="pinCancel">취소</button><button class="btn primary" id="pinOk">들어가기</button></span></div>`);
+  const inp = document.getElementById('pinIn'); inp.focus();
+  const go = () => {
+    if (inp.value === state.pin){ unlocked = true; closeModal(); location.hash = 'teacher'; }
+    else { document.getElementById('pinMsg').textContent = '비밀번호가 달라요'; inp.value = ''; inp.focus(); }
+  };
+  document.getElementById('pinOk').onclick = go;
+  inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+  document.getElementById('pinCancel').onclick = closeModal;
+}
+function pinMenu(){
+  openModal(`
+    <h3>선생님 비밀번호</h3>
+    <p class="muted" style="margin-top:0">학생 화면 아래 "선생님" 버튼을 누르면 이 비밀번호를 물어봐요. 비워 두면 비밀번호 없이 들어가요.</p>
+    <label class="field">새 비밀번호 (숫자 4~8자리)<input id="pinNew" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></label>
+    <div class="m-actions"><button class="btn danger" id="pinOff">${state.pin ? '비밀번호 없애기' : ''}</button>
+      <span style="display:flex;gap:8px"><button class="btn" id="pinBack">취소</button><button class="btn primary" id="pinSave">저장</button></span></div>`);
+  document.getElementById('pinBack').onclick = backupMenu;
+  document.getElementById('pinOff').onclick = () => { if (!state.pin) return; state.pin = ''; save(); toast('비밀번호를 없앴어요'); backupMenu(); };
+  document.getElementById('pinSave').onclick = () => {
+    const v = document.getElementById('pinNew').value.trim();
+    if (!/^\d{4,8}$/.test(v)){ alert('숫자 4~8자리로 정해 주세요.'); return; }
+    state.pin = v; save(); toast('비밀번호를 정했어요'); backupMenu();
+  };
+}
+function swapAnimal(){
+  const s = cur();
+  openModal(`
+    <h3>구할 친구 바꾸기</h3>
+    <p class="muted" style="margin-top:0">끊은 고리 수(${s.current.links}/${LINKS})는 그대로 두고 친구만 바뀌어요.</p>
+    <div class="pick" id="swapPick">${ANIMALS.map(a => `<button data-id="${a.id}" class="${a.id === s.current.animal ? 'on' : ''}" title="${esc(a.name)}">${art(a.id)}</button>`).join('')}</div>
+    <div class="m-actions"><span></span><button class="btn" id="swapCancel">취소</button></div>`);
+  document.querySelectorAll('#swapPick button').forEach(b => b.onclick = () => { s.current.animal = b.dataset.id; save(); closeModal(); render(); });
+  document.getElementById('swapCancel').onclick = closeModal;
+}
+/* 주소에 #teacher를 직접 넣어도 비밀번호가 있으면 먼저 물어봄 */
+const guardTeacher = () => { if (location.hash === '#teacher' && !isTeacher()) enterTeacher(); };
+window.addEventListener('hashchange', () => { closeModal(); render(); window.scrollTo(0, 0); guardTeacher(); });
+/* 같은 기기의 다른 창(선생님 화면 ↔ 학생 화면)에서 바꾼 내용을 바로 반영 */
+window.addEventListener('storage', e => {
+  if (e.key !== KEY) return;
+  state = load();
+  if (!document.getElementById('modal')) render();
+});
 
 /* ---------- 앱(PWA) ---------- */
 let installEvt = null;
@@ -807,6 +881,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
 render();
+guardTeacher();
 /* 자정이 지나면 화면을 새로 그림 */
 let lastDay = today();
 setInterval(() => { if (today() !== lastDay){ lastDay = today(); if (!document.getElementById('modal')) render(); } }, 30000);
