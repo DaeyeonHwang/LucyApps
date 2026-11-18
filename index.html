@@ -136,28 +136,7 @@ svg.art{display:block;width:100%;height:100%;overflow:visible}
 .q-progress{font-size:15px;color:var(--ink-soft)}
 
 /* dex */
-.dex,.words{margin-top:16px}
-/* 단어장 (선생님) */
-.w-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.w-chip{display:inline-flex;align-items:center;gap:6px;background:#f7f4ec;border-radius:999px;padding:5px 6px 5px 12px;font-size:15px}
-.w-chip small{color:var(--ink-soft);font-size:14px}
-.w-chip button{color:#b9c6c4;font-size:17px;padding:0 4px}
-.words textarea{width:100%;min-height:160px;border:2px solid #e4ebe9;border-radius:14px;padding:10px 12px;font:inherit;background:#fff}
-/* 보너스 퀴즈 */
-.quiz-btn{flex:1;min-width:230px;background:var(--gold);color:#5a3b00;font-family:"Jua";font-size:21px;padding:14px 20px;border-radius:18px;box-shadow:0 6px 0 #d1932a;animation:pulse 1.6s infinite}
-.quiz-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #d1932a}
-.bonus-note{font-size:15px;color:var(--ink-soft);padding:4px 6px}
-.quiz{text-align:center}
-.q-dots{display:flex;justify-content:center;gap:8px;margin-bottom:8px}
-.q-dots i{width:14px;height:14px;border-radius:50%;background:#e6ecea}
-.q-dots i.ok{background:var(--teal)} .q-dots i.now{background:var(--gold)}
-.q-word{font-family:"Jua";font-size:clamp(34px,8vw,48px);color:var(--ink);margin:4px 0 16px;word-break:break-word}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.choice{background:#f5f1e8;border-radius:16px;padding:16px 10px;font-size:19px;border:3px solid transparent;transition:.15s}
-.choice.ok{background:#dff3ee;border-color:var(--teal)}
-.choice.no{background:var(--coral-soft);border-color:var(--coral)}
-.choice[disabled]{cursor:default}
-.q-msg{min-height:1.5em;font-family:"Jua";font-size:19px;margin:14px 0 0}
+.dex{margin-top:16px}
 .dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
 .dex-item{background:#f7f4ec;border-radius:18px;padding:10px 4px 8px;text-align:center}
 .dex-item .e{width:64px;height:64px;margin:0 auto}
@@ -495,10 +474,9 @@ function addXP(s, n){
   s.xp = Math.max(0, s.xp + n);
   if (level(s) > before){ setTimeout(() => { sfx.level(); toast(`🎉 레벨 업! Lv.${level(s)}`); }, 450); }
 }
-function breakLink(force){
+function breakLink(){
   const s = cur(), c = s.current;
-  if (c.links >= LINKS) return;
-  if (!force && s.lastBreak === today()) return;
+  if (c.links >= LINKS) return;           /* 하루 횟수 제한 없음 (2026-11-19 아내분 요청) */
   c.links++; c.log.push(today()); s.lastBreak = today(); addXP(s, LINK_XP);
   save(); render({snap: c.links - 1});
   sfx.snap();
@@ -551,77 +529,6 @@ function addQuest(){
 function delQuest(id){
   const s = cur(); s.quests = s.quests.filter(q => q.id !== id); save(); render();
 }
-/* ---------- 단어장 + 보너스 퀴즈 ---------- */
-const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
-const QUIZ_N = 3;
-const quizReady = s => new Set((s.words || []).map(w => w.ko)).size >= 4;   /* 보기 4개를 만들 수 있어야 함 */
-const bonusToday = s => s.bonus && s.bonus.date === today() ? s.bonus : null;
-function addWord(s, en, ko){
-  en = en.trim(); ko = ko.trim(); if (!en || !ko) return false;
-  const old = s.words.find(w => w.en.toLowerCase() === en.toLowerCase());
-  if (old) old.ko = ko; else s.words.push({id:uid(), en, ko});
-  return true;
-}
-function addWordInput(){
-  const en = document.getElementById('wEn'), ko = document.getElementById('wKo');
-  if (!en.value.trim()){ en.focus(); return; } if (!ko.value.trim()){ ko.focus(); return; }
-  addWord(cur(), en.value, ko.value); save(); render(); document.getElementById('wEn').focus();
-}
-function bulkWords(){
-  openModal(`
-    <div class="words"><h3>단어 한꺼번에 넣기</h3>
-    <p class="muted" style="margin-top:0">한 줄에 하나씩 "영어 뜻" 으로 적어 주세요. 사이에 - 나 : 를 넣어도 돼요.</p>
-    <textarea id="wBulkIn" placeholder="apple 사과&#10;ocean - 바다&#10;brave : 용감한"></textarea>
-    <div class="m-actions"><span></span><span style="display:flex;gap:8px"><button class="btn" id="wBulkCancel">취소</button><button class="btn primary" id="wBulkSave">넣기</button></span></div></div>`);
-  document.getElementById('wBulkCancel').onclick = closeModal;
-  document.getElementById('wBulkSave').onclick = () => {
-    const s = cur(); let n = 0;
-    document.getElementById('wBulkIn').value.split(/\r?\n/).forEach(line => {
-      line = line.trim(); if (!line) return;
-      const m = line.match(/^(.+?)\s*[\t:=–—]\s*(.+)$/) || line.match(/^(.+?)\s+-\s+(.+)$/) || line.match(/^([^가-힣]+?)\s+([가-힣].*)$/);
-      if (m && addWord(s, m[1], m[2])) n++;
-    });
-    save(); closeModal(); render(); toast(n ? `단어 ${n}개를 넣었어요` : '넣을 단어를 찾지 못했어요');
-  };
-}
-function startQuiz(){
-  const s = cur();
-  if (!quizReady(s) || bonusToday(s)) return;
-  s.bonus = {date: today(), won: false}; save();          /* 시작하면 오늘 도전 1번을 쓴 것으로 셈 */
-  const qs = shuffle([...s.words]).slice(0, QUIZ_N);
-  let i = 0;
-  const show = () => {
-    const w = qs[i];
-    const wrong = shuffle([...new Set(s.words.map(x => x.ko))].filter(k => k !== w.ko)).slice(0, 3);
-    const opts = shuffle([w.ko, ...wrong]);
-    openModal(`<div class="quiz" id="quiz">
-      <div class="q-dots">${qs.map((_, k) => `<i class="${k < i ? 'ok' : k === i ? 'now' : ''}"></i>`).join('')}</div>
-      <p class="muted" style="margin:0">${i + 1}번째 문제 · 이 단어의 뜻은?</p>
-      <div class="q-word">${esc(w.en)}</div>
-      <div class="choices">${opts.map(o => `<button class="choice" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>
-      <p class="q-msg" id="qMsg"></p><div id="qEnd"></div></div>`);
-    const btns = [...document.querySelectorAll('.choice')];
-    btns.forEach(b => b.onclick = () => {
-      btns.forEach(x => x.disabled = true);
-      const msg = document.getElementById('qMsg');
-      if (b.dataset.o === w.ko){
-        b.classList.add('ok'); sfx.check(); msg.textContent = '정답! 👏';
-        i++; setTimeout(i < QUIZ_N ? show : win, 750);
-      } else {
-        b.classList.add('no'); btns.find(x => x.dataset.o === w.ko).classList.add('ok');
-        msg.innerHTML = `아쉬워요! 정답은 "${esc(w.ko)}"예요.<br><span class="muted" style="font-family:'Gowun Dodum';font-size:16px">퀴즈는 내일 또 도전해요 💪</span>`;
-        document.getElementById('qEnd').innerHTML = '<div class="m-actions" style="justify-content:center"><button class="btn primary" id="qClose">확인</button></div>';
-        document.getElementById('qClose').onclick = () => { closeModal(); render(); };
-      }
-    });
-  };
-  const win = () => {
-    s.bonus.won = true; save(); closeModal();
-    toast('🎯 퀴즈 성공! 보너스 고리를 끊어요'); confetti(40);
-    breakLink(true);
-  };
-  show();
-}
 function resetQuests(){
   if (!confirm('오늘의 퀘스트 체크를 모두 풀까요? (모은 경험치는 그대로예요)')) return;
   cur().quests.forEach(q => q.done = false); save(); render();
@@ -632,7 +539,7 @@ function openModal(html){
   closeModal();
   const bg = document.createElement('div'); bg.className = 'modal-bg'; bg.id = 'modal';
   bg.innerHTML = `<div class="modal">${html}</div>`;
-  bg.addEventListener('click', e => { if (e.target === bg && !bg.querySelector('#nextPick, #quiz')) closeModal(); });
+  bg.addEventListener('click', e => { if (e.target === bg && !bg.querySelector('#nextPick')) closeModal(); });
   document.body.appendChild(bg);
 }
 function closeModal(){ const m = document.getElementById('modal'); if (m) m.remove(); }
@@ -779,17 +686,13 @@ function render(opt = {}){
   document.body.classList.toggle('teacher', T);
   const s = cur(); state.selected = s.id;
   const a = A(s.current.animal), links = s.current.links;
-  const doneToday = s.lastBreak === today();
-  if (!Array.isArray(s.words)) s.words = [];
-  const bonus = bonusToday(s);
-  const canQuiz = doneToday && !bonus && links < LINKS && quizReady(s);
   const lv = level(s), pct = s.xp % 100;
   const qDone = s.quests.filter(q => q.done).length;
   const now = new Date();
   const dateStr = now.toLocaleDateString('ko-KR', {month:'long', day:'numeric', weekday:'short'});
 
   const chain = Array.from({length:LINKS}, (_, i) => {
-    const broken = i < links, next = i === links && !doneToday;
+    const broken = i < links, next = i === links;
     return `<div class="link ${broken?'broken':''} ${next?'next':''} ${opt.snap===i?'snap':''}">
       <span class="n">${i+1}</span>${broken?'<span class="ok">✓</span>':''}</div>`;
   }).join('');
@@ -798,7 +701,7 @@ function render(opt = {}){
     <header>
       <div class="title">
         <h1>오늘도 하나 <em>해냈다!</em></h1>
-        <p>하루 10분, 영어 한 지문 · 하루에 고리 하나씩 끊어 바다 친구를 구해요</p>
+        <p>영어 지문 하나 끝낼 때마다 고리 하나씩 끊어 바다 친구를 구해요</p>
       </div>
       <div class="head-right">
         <span class="clock" id="clock">${dateStr}</span>
@@ -854,19 +757,11 @@ function render(opt = {}){
             <div class="chain">${chain}</div>
           </div>
           <div class="actions">
-            ${!doneToday
-              ? `<button class="big-btn" id="breakBtn">✂️ 오늘 지문 끝! 고리 끊기</button>`
-              : bonus && bonus.won
-                ? `<button class="big-btn" disabled>보너스 고리까지 끊었어요! 대단해요 🌟</button>`
-                : `<button class="big-btn" disabled>오늘 고리 끊기 완료! 내일 또 만나요 🌊</button>`}
-            ${canQuiz ? `<button class="quiz-btn" id="quizBtn">🎯 퀴즈 풀고 하나 더!</button>` : ''}
+            ${links < LINKS ? `<button class="big-btn" id="breakBtn">✂️ 지문 끝! 고리 끊기</button>` : ''}
           </div>
-          ${bonus && !bonus.won ? `<div class="bonus-note">오늘 퀴즈는 도전했어요. 내일 또 도전해요 💪</div>` : ''}
           ${T ? `<div class="actions" style="margin-top:6px">
-            ${doneToday && links < LINKS ? `<button class="small-link" id="forceBtn">밀린 날 채우기(하나 더 끊기)</button>` : ''}
             ${links ? `<button class="small-link" id="undoBtn">마지막 고리 되돌리기</button>` : ''}
             <button class="small-link" id="swapBtn">구할 친구 바꾸기</button>
-            ${bonus ? `<button class="small-link" id="quizReset">오늘 퀴즈 다시 열어 주기</button>` : ''}
           </div>` : ''}
         </section>
       </div>
@@ -894,18 +789,6 @@ function render(opt = {}){
           <div style="text-align:right;margin-top:8px"><button class="small-link" id="qReset">체크 모두 풀기</button></div>` : ''}
         </section>
 
-        ${T ? `<section class="card words">
-          <div class="q-head"><h2>📝 단어장</h2><span class="q-progress">${s.words.length}개</span></div>
-          <p class="muted" style="font-size:14px;margin:6px 0 0">${esc(s.name)} 학생의 보너스 퀴즈에 나와요. 뜻이 서로 다른 단어가 4개 이상이면 퀴즈가 열려요.${quizReady(s) ? '' : ' <b style="color:var(--coral)">(아직 부족해요)</b>'}</p>
-          <div class="w-list">${s.words.map(w => `<span class="w-chip">${esc(w.en)} <small>${esc(w.ko)}</small><button data-wdel="${w.id}" aria-label="삭제">×</button></span>`).join('')}</div>
-          <div class="q-add">
-            <input id="wEn" placeholder="영어 (예: ocean)" maxlength="30" autocapitalize="off">
-            <input id="wKo" placeholder="뜻 (예: 바다)" maxlength="30">
-            <button id="wAdd" aria-label="단어 추가">＋</button>
-          </div>
-          <div style="text-align:right;margin-top:8px"><button class="small-link" id="wBulk">여러 개 한꺼번에 넣기</button></div>
-        </section>` : ''}
-
         <section class="card dex">
           <h2>📖 바다 친구 도감 <span class="q-progress" style="margin-left:auto">${s.rescued.length}/${ANIMALS.length}</span></h2>
           <div class="dex-grid">
@@ -926,24 +809,16 @@ function render(opt = {}){
   document.querySelectorAll('[data-sid]').forEach(b => b.onclick = () => { state.selected = b.dataset.sid; save(); render(); });
   const on = (id, fn, ev = 'onclick') => { const el = document.getElementById(id); if (el) el[ev] = fn; };
   /* 학생 화면에서도 되는 것: 학생 고르기, 고리 끊기, 퀘스트 체크, 선생님 화면 들어가기 */
-  on('breakBtn', () => breakLink(false));
+  on('breakBtn', breakLink);
   document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => toggleQuest(b.dataset.q));
   on('toTeacher', enterTeacher);
-  on('quizBtn', startQuiz);
   if (!T) return;
-  on('quizReset', () => { delete s.bonus; save(); render(); toast('오늘 퀴즈를 다시 열었어요'); });
-  on('wAdd', addWordInput);
-  on('wKo', e => { if (e.key === 'Enter' && !e.isComposing) addWordInput(); }, 'onkeydown');
-  on('wEn', e => { if (e.key === 'Enter' && !e.isComposing) document.getElementById('wKo').focus(); }, 'onkeydown');
-  on('wBulk', bulkWords);
-  document.querySelectorAll('[data-wdel]').forEach(b => b.onclick = () => { s.words = s.words.filter(w => w.id !== b.dataset.wdel); save(); render(); });
   /* 선생님 화면에서만 되는 것 */
   on('toDisplay', () => { unlocked = false; location.hash = ''; });
   on('addStudent', () => studentForm(null));
   on('editStudent', () => studentForm(s));
   on('menuBtn', backupMenu);
   on('installBtn', async () => { installEvt.prompt(); await installEvt.userChoice; installEvt = null; render(); });
-  on('forceBtn', () => { if (confirm('오늘 이미 하나 끊었어요. 밀린 날을 채우려고 하나 더 끊을까요?')) breakLink(true); });
   on('undoBtn', undoLink);
   on('swapBtn', swapAnimal);
   document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => delQuest(b.dataset.del));
