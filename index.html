@@ -137,6 +137,10 @@ svg.art{display:block;width:100%;height:100%;overflow:visible}
 
 /* dex */
 .dex{margin-top:16px}
+.setup{max-width:520px;margin:24px auto 0;text-align:center}
+.setup-art{width:140px;height:140px;margin:0 auto 6px}
+.setup .big-btn{width:100%;margin-top:8px}
+.setup h2{justify-content:center;text-align:center}
 .dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
 .dex-item{background:#f7f4ec;border-radius:18px;padding:10px 4px 8px;text-align:center}
 .dex-item .e{width:64px;height:64px;margin:0 auto}
@@ -402,10 +406,11 @@ function makeStudent(name, grade, buddy){
   return {id:uid(), name, grade, buddy, xp:0, stickers:0, rescued:[],
     current:{animal:'dolphin', links:0, log:[]}, quests:defaultQuests(), questDate:today(), words:[]};
 }
+/* 예전 버전이 자동으로 만들던 "예시 학생"을 한 번도 안 썼으면 없앰 */
+const untouchedSample = st => st.name === '예시 학생' && !st.xp && !st.stickers && !(st.rescued || []).length && !(st.current && st.current.links);
 function load(){
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.students)){ s.students.forEach(st => { if (!Array.isArray(st.words)) st.words = []; }); return s; } } catch(e){}
-  const st = makeStudent('예시 학생', '초3', 'dolphin');
-  return {students:[st], selected:st.id, sound:true};
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.students)){ s.students = s.students.filter(st => !untouchedSample(st)); return s; } } catch(e){}
+  return {students:[], selected:null, sound:true};   /* 처음에는 학생 없이 시작해서 바로 첫 학생을 등록 (2026-11-25) */
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
 let state = load();
@@ -577,8 +582,7 @@ function studentForm(s){
   if (del) del.onclick = () => {
     if (!confirm(`${s.name} 학생의 기록을 모두 지울까요? 되돌릴 수 없어요.`)) return;
     state.students = state.students.filter(x => x.id !== s.id);
-    if (!state.students.length){ const st = makeStudent('예시 학생','초3','dolphin'); state.students.push(st); }
-    state.selected = state.students[0].id; save(); closeModal(); render();
+    state.selected = state.students.length ? state.students[0].id : null; save(); closeModal(); render();
   };
 }
 
@@ -680,8 +684,30 @@ function netSVG(links, snap){
     </g></svg>`;
 }
 
+/* 학생이 한 명도 없을 때: 첫 학생 등록 화면 */
+function renderSetup(){
+  document.body.classList.remove('teacher');
+  document.getElementById('app').innerHTML = `
+    <header>
+      <div class="title">
+        <h1>오늘도 하나 <em>해냈다!</em></h1>
+        <p>영어 지문 하나 끝낼 때마다 고리 하나씩 끊어 바다 친구를 구해요</p>
+      </div>
+    </header>
+    <section class="card setup">
+      <div class="setup-art">${art('dolphin')}</div>
+      <h2>첫 학생을 등록해 주세요</h2>
+      <p class="muted">이름과 짝꿍 캐릭터를 고르면 바로 시작할 수 있어요.</p>
+      <button class="big-btn" id="setupAdd">＋ 학생 등록하기</button>
+      <p style="margin-top:14px"><button class="small-link" id="setupRestore">예전 백업 파일 불러오기</button></p>
+    </section>`;
+  document.getElementById('setupAdd').onclick = () => studentForm(null);
+  document.getElementById('setupRestore').onclick = backupMenu;
+}
+
 function render(opt = {}){
   dailyReset();
+  if (!state.students.length) return renderSetup();
   const T = isTeacher();
   document.body.classList.toggle('teacher', T);
   const s = cur(); state.selected = s.id;
