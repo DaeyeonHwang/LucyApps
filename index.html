@@ -761,7 +761,7 @@ function render(opt = {}){
               <div class="xp"><div class="bar"><i style="width:${pct}%"></i></div><b>${pct}/100</b></div>
               <div class="stats">
                 <span class="stat">⭐ 스티커 <b>${s.stickers}</b></span>
-                <span class="stat">📖 도감 <b>${s.rescued.length}</b>/${ANIMALS.length}</span>
+                <span class="stat">🌊 도감 <b>${s.rescued.length}</b>/${ANIMALS.length}</span>
                 <span class="stat">✨ 경험치 <b>${s.xp}</b></span>
               </div>
             </div>
@@ -816,7 +816,7 @@ function render(opt = {}){
         </section>
 
         <section class="card dex">
-          <h2>📖 바다 친구 도감 <span class="q-progress" style="margin-left:auto">${s.rescued.length}/${ANIMALS.length}</span></h2>
+          <h2>🌊 바다 친구 도감 <span class="q-progress" style="margin-left:auto">${s.rescued.length}/${ANIMALS.length}</span></h2>
           <div class="dex-grid">
             ${ANIMALS.map(x => {
               const got = s.rescued.includes(x.id), now = x.id === a.id && !got;
