@@ -601,7 +601,7 @@ function render(){
     h += `<div class="row" data-row="car${i}">
       <div class="pic" id="car${i}">${CARS[i].svg()}</div>
       <div class="info">
-        <div class="top"><span class="tag"><span>${esc(m.name)}</span></span><span class="nick">${CARS[i].nick}</span>${T?`<button class="edit-txt" data-edit="mission" data-i="${i}">고치기</button>`:''}</div>
+        <div class="top"><span class="tag"><span>${esc(m.name)}</span></span>${T?`<button class="edit-txt" data-edit="mission" data-i="${i}">고치기</button>`:''}</div>
         <div class="desc">${esc(m.desc)}</div>
         <div class="bottom"><div class="fuel"><span class="lbl">FUEL</span>${[0,1,2,3].map(k=>`<button class="cell ${k<c.fuel?'on':''}" data-cell="${i}" data-k="${k}" aria-label="연료 ${k+1}칸"><i></i></button>`).join('')}</div>
           <button class="go" data-fuel="${i}" ${done?'disabled':''}>${done?'내일 또 달려요!':'⛽ 미션 성공!'}</button></div>
