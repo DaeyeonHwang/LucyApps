@@ -19,6 +19,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // 같은 사이트의 다른 페이지(블록 타워 등)는 건드리지 않는다. 바다 구조대 저장본을 덮어쓰지 않게.
+  if (url.pathname.includes('/block-tower/')) return;
   const isPage = req.mode === 'navigate';
   const isFont = url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com';
   if (url.origin !== location.origin && !isFont) return;

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>블록 타워 미션</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: 왼쪽은 미션마다 블록이 떨어져 한 층씩 올라가는 타워(블록 친구가 꼭대기로 올라감), 오른쪽은 지금 라운드 하나만 크게. 아래는 충전(쉬는 시간). */
+:root{
+  --bg:#EAF1FF;
+  --card:#FFFFFF;
+  --ink:#1E2A4A;
+  --soft:#5D6B8C;
+  --line:#C9D8FF;
+  --blue:#2F6BFF;
+  --blue-dark:#1B49C4;
+  --blue-soft:#DCE7FF;
+  --yellow:#FFC93C; --yellow-dark:#D99A00; --yellow-soft:#FFF3CC;
+  --purple:#A77BFF; --purple-dark:#7B4FD9; --purple-soft:#EEE6FF;
+  --cyan:#2EC4E6;   --cyan-dark:#1592B5;   --cyan-soft:#DDF6FC;
+  --gray:#C9D1E0;   --gray-dark:#97A3BB;
+  --good:#22B573;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:linear-gradient(var(--blue-soft) 1px,transparent 1px),linear-gradient(90deg,var(--blue-soft) 1px,transparent 1px);background-size:28px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+.wrap{max-width:1140px;margin:0 auto;display:grid;gap:14px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* 머리 */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,5.4vw,48px);margin:0;line-height:1.1;color:var(--blue);
+  text-shadow:3px 3px 0 var(--yellow)}
+.brand small{display:block;font-family:var(--display);color:var(--soft);font-size:16px}
+.side{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.buddies{display:flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:6px 10px}
+.buddies span{font-family:var(--display);font-size:15px;color:var(--soft)}
+.bud{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;border:3px solid transparent}
+.bud svg{width:28px;height:28px}
+.bud.on{border-color:var(--ink)}
+.reset{font-size:14px;color:var(--soft);padding:8px 12px;border-radius:12px;border:2px dashed var(--line);background:var(--card)}
+.reset-ask{display:flex;gap:6px;align-items:center;font-size:14px;background:var(--card);padding:6px 10px;border-radius:12px}
+.reset-ask button{padding:6px 12px;border-radius:10px;border:2px solid var(--line)}
+.reset-ask button.yes{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* 모드 안내 */
+.modes-info{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mi{background:var(--card);border:3px solid var(--c);border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;min-width:0;box-shadow:0 4px 0 var(--cd)}
+.mi i{flex:none;width:34px;height:34px;border-radius:8px;background:var(--c);box-shadow:inset 0 -5px 0 var(--cd);position:relative}
+.mi i::before,.mi i::after{content:"";position:absolute;top:-6px;width:10px;height:6px;border-radius:3px 3px 0 0;background:var(--c)}
+.mi i::before{left:5px}.mi i::after{right:5px}
+.mi b{font-family:var(--display);font-weight:400;font-size:20px;display:block;line-height:1.2}
+.mi span{font-size:14px;color:var(--soft)}
+.y{--c:var(--yellow);--cd:var(--yellow-dark);--cs:var(--yellow-soft)}
+.p{--c:var(--purple);--cd:var(--purple-dark);--cs:var(--purple-soft)}
+.cy{--c:var(--cyan);--cd:var(--cyan-dark);--cs:var(--cyan-soft)}
+.rule{text-align:center;font-family:var(--display);font-size:19px;margin:0}
+.rule em{font-style:normal;color:var(--blue)}
+
+/* 본문 */
+main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;align-items:start}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:18px}
+.tower-panel{display:grid;gap:8px;justify-items:center;text-align:center}
+.tower-panel h2{font-family:var(--display);font-weight:400;margin:0;font-size:24px}
+#tower{width:100%;max-width:300px;height:auto;overflow:visible}
+.drop{animation:drop .55s cubic-bezier(.3,1.5,.55,1) both;transform-box:fill-box}
+@keyframes drop{from{transform:translateY(-260px)}to{transform:none}}
+.flash{animation:flash .9s ease-out 1}
+@keyframes flash{0%{filter:brightness(1.6)}100%{filter:none}}
+.hop{animation:hop .6s ease-out 1;transform-box:fill-box;transform-origin:bottom}
+@keyframes hop{0%{transform:translateY(60px)}50%{transform:translateY(-18px)}100%{transform:none}}
+.say{font-family:var(--display);font-size:18px;background:var(--blue-soft);color:var(--blue-dark);padding:6px 14px;border-radius:12px;margin:0}
+.track{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.chip{font-family:var(--display);font-size:15px;padding:4px 10px;border-radius:10px;border:2px solid var(--line);color:var(--soft);background:var(--card)}
+.chip.now{border-color:var(--blue);color:var(--blue)}
+.chip.pass{background:#DFF6EA;border-color:var(--good);color:#137A4B}
+.chip.fail{background:#EEF1F6;border-color:var(--gray);color:var(--soft)}
+.sticker-rule{font-size:14px;color:var(--soft);margin:0}
+
+/* 라운드 */
+.round{display:grid;gap:16px}
+.round-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.round-head h2{font-family:var(--display);font-weight:400;margin:0;font-size:34px;color:var(--blue)}
+.round-head h2 small{font-size:20px;color:var(--soft)}
+.retry-tag{font-family:var(--display);font-size:16px;padding:4px 12px;border-radius:10px;background:var(--yellow-soft);color:#8A6200}
+.mission label{font-size:14px;color:var(--soft);display:block;margin-bottom:4px}
+.mission input{width:100%;font-family:var(--display);font-size:26px;color:var(--ink);padding:8px 14px;border-radius:12px;border:3px solid var(--line);background:#F7FAFF}
+
+.timer{display:grid;gap:10px}
+.tbar{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.tb{aspect-ratio:1;max-width:100%;border-radius:8px;background:var(--blue);box-shadow:inset 0 -6px 0 var(--blue-dark);transition:transform .25s,opacity .25s,background .3s}
+.tb.gone{transform:scale(.35);opacity:.15;box-shadow:none}
+.tbar.last .tb:not(.gone){background:var(--yellow);box-shadow:inset 0 -6px 0 var(--yellow-dark)}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.clock{font-family:var(--display);font-size:44px;line-height:1;font-variant-numeric:tabular-nums;min-width:110px}
+.mins{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:20px}
+.mins button{width:40px;height:40px;border-radius:10px;background:var(--blue-soft);font-size:22px;line-height:1}
+.mins button:disabled{opacity:.35;cursor:default}
+.mins output{min-width:56px;text-align:center}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font-family:var(--display);font-size:22px;padding:9px 20px;border-radius:12px;background:var(--blue);color:#fff;box-shadow:0 5px 0 var(--blue-dark)}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--blue-dark)}
+.btn.go{background:var(--good);box-shadow:0 5px 0 #13824F}
+.btn.ghosty{background:var(--card);color:var(--soft);border:2px solid var(--line);box-shadow:none}
+.btn.big{font-size:26px;padding:11px 26px}
+
+.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.check{border:3px dashed var(--c);border-radius:16px;padding:12px 8px 10px;display:grid;justify-items:center;gap:6px;background:#fff;min-height:128px}
+.check .slot{width:56px;height:52px;border-radius:10px;border:3px dashed var(--c);position:relative;margin-top:6px;transition:background .2s}
+.check b{font-family:var(--display);font-weight:400;font-size:19px;line-height:1.1}
+.check .hint{font-size:13px;color:var(--soft)}
+.check.on{border-style:solid;background:var(--cs)}
+.check.on .slot{background:var(--c);border:0;box-shadow:inset 0 -7px 0 var(--cd);animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+.check.on .slot::before,.check.on .slot::after{content:"";position:absolute;top:-8px;width:16px;height:8px;border-radius:4px 4px 0 0;background:var(--c)}
+.check.on .slot::before{left:8px}.check.on .slot::after{right:8px}
+@keyframes pop{from{transform:scale(.4)}to{transform:none}}
+.check:disabled{cursor:default}
+
+.result{border-radius:16px;padding:14px 16px;font-family:var(--display);font-size:24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.result p{margin:0}
+.result.pass{background:#DFF6EA;color:#137A4B}
+.result.again{background:var(--yellow-soft);color:#7A5600}
+.result.fail{background:#EEF1F6;color:var(--soft)}
+.judge-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.judge-row span{font-family:var(--display);font-size:19px;color:var(--soft)}
+
+.finale{display:grid;gap:14px;justify-items:center;text-align:center;padding-block:10px}
+.finale h2{font-family:var(--display);font-weight:400;margin:0;font-size:36px;color:var(--blue)}
+.finale p{margin:0;font-size:17px}
+.stickers{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.sticker{width:74px;height:74px;border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-size:18px;color:#7A5600;background:var(--yellow);box-shadow:inset 0 -8px 0 var(--yellow-dark),0 0 0 4px #fff,0 0 0 7px var(--yellow-dark);transform:rotate(-4deg)}
+.sticker:nth-child(2){transform:rotate(3deg)}
+.sticker.bonus{background:var(--purple);color:#fff;box-shadow:inset 0 -8px 0 var(--purple-dark),0 0 0 4px #fff,0 0 0 7px var(--purple-dark)}
+
+/* 충전 */
+.charge{display:grid;gap:12px}
+.charge-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.charge h2{font-family:var(--display);font-weight:400;margin:0;font-size:22px}
+.plans{display:flex;gap:10px;flex-wrap:wrap}
+.plan{padding:9px 14px;border-radius:12px;border:3px solid var(--line);background:#F7FAFF;font-family:var(--display);font-size:19px}
+.plan.picked{border-color:var(--good);background:#DFF6EA}
+.plan:disabled:not(.picked){opacity:.4;cursor:default}
+.slots{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bat{width:58px;height:40px;border-radius:8px;border:3px solid var(--good);position:relative;background:#fff;padding:4px}
+.bat::after{content:"";position:absolute;right:-8px;top:11px;width:5px;height:12px;border-radius:0 3px 3px 0;background:var(--good)}
+.bat i{display:block;height:100%;width:100%;border-radius:4px;background:var(--good)}
+.bat.used{opacity:.4;border-style:dashed;cursor:default}
+.bat.used i{width:0}
+.note{color:var(--soft);font-size:15px}
+.foot{text-align:center;font-family:var(--display);font-size:19px;color:var(--blue);margin:0}
+
+.overlay{position:fixed;inset:0;background:rgba(30,42,74,.6);display:grid;place-items:center;z-index:20;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.overlay[hidden]{display:none}
+.sheet{background:var(--card);border-radius:24px;padding:24px;max-width:440px;width:100%;display:grid;gap:14px;justify-items:center;text-align:center}
+.sheet h3{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--good)}
+.sheet p{margin:0;font-size:17px}
+.sheet .clock{text-align:center}
+.bigbat{width:180px;height:84px;border-radius:14px;border:5px solid var(--good);padding:7px;position:relative}
+.bigbat::after{content:"";position:absolute;right:-14px;top:24px;width:9px;height:26px;border-radius:0 5px 5px 0;background:var(--good)}
+.bigbat i{display:block;height:100%;border-radius:7px;background:var(--good);transition:width .3s}
+.sheet.ring h3{color:var(--blue);font-size:40px}
+
+@media (max-width:880px){main{grid-template-columns:1fr}#tower{max-width:270px}}
+@media (max-width:560px){
+  .modes-info{grid-template-columns:1fr}
+  .checks{grid-template-columns:1fr}
+  .check{grid-template-columns:auto 1fr;justify-items:start;text-align:left;min-height:0;align-items:center;column-gap:12px}
+  .check .slot{grid-row:span 2}
+  .tbar{gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="4" y="30" width="22" height="20" rx="4" fill="#FFC93C" stroke="#1E2A4A" stroke-width="2.5"/>
+        <rect x="28" y="30" width="22" height="20" rx="4" fill="#2EC4E6" stroke="#1E2A4A" stroke-width="2.5"/>
+        <rect x="16" y="9" width="22" height="20" rx="4" fill="#A77BFF" stroke="#1E2A4A" stroke-width="2.5"/>
+        <circle cx="23" cy="18" r="2.2" fill="#1E2A4A"/><circle cx="31" cy="18" r="2.2" fill="#1E2A4A"/>
+      </svg>
+      <div><h1>블록 타워 미션!</h1><small>미션을 해내면 블록이 떨어지고, 타워가 한 층씩 올라가요</small></div>
+    </div>
+    <div class="side">
+      <div class="buddies" id="buddies"></div>
+      <div id="resetBox"></div>
+    </div>
+  </header>
+
+  <section class="modes-info" aria-label="오늘의 세 가지 블록">
+    <div class="mi y"><i></i><div><b>자리 고정 블록</b><span>공부할 때 엉덩이를 의자에!</span></div></div>
+    <div class="mi p"><i></i><div><b>조용 블록</b><span>갑자기 큰 소리 내지 않기!</span></div></div>
+    <div class="mi cy"><i></i><div><b>퍼즐 완성 블록</b><span>약속한 시간 안에 끝내기!</span></div></div>
+  </section>
+  <p class="rule">블록 <em>2개</em> 모이면 → 층 완성! · 다시 도전은 라운드마다 <em>1번</em></p>
+
+  <main>
+    <section class="panel tower-panel" aria-label="오늘 쌓는 타워">
+      <h2 id="towerTitle">오늘의 타워</h2>
+      <svg id="tower" viewBox="0 0 320 520" role="img" aria-label="미션마다 블록이 쌓이는 타워"></svg>
+      <p class="say" id="say"></p>
+      <div class="track" id="track"></div>
+      <p class="sticker-rule">6층 완성: 스티커 2개 · 블록 18개 전부 모으기: 추가 1개</p>
+    </section>
+    <section class="panel" id="stage" aria-live="polite"></section>
+  </main>
+
+  <section class="panel charge" aria-label="오늘의 충전 방식">
+    <div class="charge-top">
+      <h2>오늘의 충전 방식 — 둘 중 1개 선택!</h2>
+      <div class="plans" id="plans"></div>
+    </div>
+    <div class="slots" id="slots"></div>
+    <p class="foot">쉬기 전에 말하기 · 알람이 울리면 자리로!</p>
+  </section>
+</div>
+
+<div class="overlay" id="overlay" hidden></div>
+
+<script>
+(function(){
+  const MODES=[
+    {k:'seat',name:'자리 고정',hint:'엉덩이는 의자에',cls:'y',c:'#FFC93C',d:'#D99A00'},
+    {k:'quiet',name:'조용',hint:'큰 소리 없이',cls:'p',c:'#A77BFF',d:'#7B4FD9'},
+    {k:'time',name:'퍼즐 완성',hint:'시간 안에 끝!',cls:'cy',c:'#2EC4E6',d:'#1592B5'}
+  ];
+  const GRAY={c:'#C9D1E0',d:'#97A3BB'};
+  const BUDDIES=[{k:'red',c:'#FF5A5F',d:'#C93B40'},{k:'green',c:'#3DCB7A',d:'#259A57'},{k:'orange',c:'#FF9A3C',d:'#CF7316'},{k:'pink',c:'#FF7AC2',d:'#D24F98'}];
+  const EXAMPLES=['단어 카드 10개 읽기','리딩 지문 1쪽 읽기','워크시트 1장 풀기','단어 스펠링 5개 쓰기','책 2쪽 소리 내어 읽기','영어 문장 3개 쓰기'];
+  const FLOORS=EXAMPLES.length, LAST=FLOORS-1;
+  const KEY='block-tower-v2';
+
+  function fresh(buddy){
+    return {cur:0,finished:false,plan:null,used:[],buddy:buddy||'red',
+      rounds:EXAMPLES.map(m=>({mission:m,minutes:10,ok:{seat:false,quiet:false,time:false},retry:false,result:null,again:false})),
+      timer:{total:600000,left:600000,running:false,endAt:0}};
+  }
+  let S;
+  try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+  if(!S||!S.rounds||S.rounds.length!==FLOORS) S=fresh();
+  S.timer.running=false;
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+  let anim={drop:null,pass:null}; // 방금 생긴 블록, 방금 완성된 층
+
+  /* 소리 */
+  let ac=null;
+  function audio(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+  function tone(notes,type,gap){
+    if(!ac)return;
+    notes.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.value=f;
+      const t=ac.currentTime+i*(gap||0.11);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+      o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.32)});
+  }
+  let lock=null;
+  async function wake(){try{lock=await navigator.wakeLock.request('screen')}catch(e){}}
+  function unwake(){try{lock&&lock.release();lock=null}catch(e){}}
+
+  /* 타워 그리기 (위쪽에 지붕과 꼭대기 친구 자리를 둠) */
+  const FY=i=>430-60*i;           // 층 i의 윗면 y
+  function brick(x,y,col,cls){
+    return `<g class="${cls||''}"><rect x="${x+10}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+      <rect x="${x+46}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+      <rect x="${x}" y="${y}" width="76" height="54" rx="8" fill="${col.c}" stroke="#1E2A4A" stroke-width="3"/>
+      <rect x="${x+5}" y="${y+40}" width="66" height="9" rx="4" fill="${col.d}" opacity=".55"/>
+      <rect x="${x+8}" y="${y+7}" width="20" height="6" rx="3" fill="#fff" opacity=".55"/></g>`;
+  }
+  function ghost(x,y,col,strong){
+    return `<rect x="${x+2}" y="${y+2}" width="72" height="50" rx="8" fill="${strong?'#fff':'none'}" stroke="${col.c}" stroke-width="3" stroke-dasharray="8 6" opacity="${strong?1:.45}"/>`;
+  }
+  function buddy(x,y,cls){
+    const b=BUDDIES.find(v=>v.k===S.buddy)||BUDDIES[0];
+    return `<g class="${cls||''}"><rect x="${x+12}" y="${y-7}" width="16" height="9" rx="3" fill="${b.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+      <rect x="${x}" y="${y}" width="40" height="38" rx="8" fill="${b.c}" stroke="#1E2A4A" stroke-width="3"/>
+      <rect x="${x+4}" y="${y+28}" width="32" height="6" rx="3" fill="${b.d}" opacity=".5"/>
+      <circle cx="${x+13}" cy="${y+15}" r="3.4" fill="#1E2A4A"/><circle cx="${x+27}" cy="${y+15}" r="3.4" fill="#1E2A4A"/>
+      <path d="M${x+13} ${y+22}q7 6 14 0" fill="none" stroke="#1E2A4A" stroke-width="2.5" stroke-linecap="round"/></g>`;
+  }
+  function renderTower(){
+    let s=`<rect x="10" y="${FY(-1)+4}" width="300" height="22" rx="8" fill="#9BB5F0"/><rect x="10" y="${FY(-1)+4}" width="300" height="8" rx="4" fill="#3DCB7A"/>`;
+    let top=-1;
+    S.rounds.forEach((r,i)=>{
+      const y=FY(i);
+      const isCur=i===S.cur&&!S.finished;
+      const flash=anim.pass===i?' flash':'';
+      s+=`<g class="${flash.trim()}">`;
+      MODES.forEach((m,j)=>{
+        const x=22+j*77;
+        if(r.result==='pass'){s+=brick(x,y,r.ok[m.k]?m:GRAY,anim.pass===i?'':'');}
+        else if(r.result==='fail'){s+=brick(x,y,GRAY)}
+        else if(r.ok[m.k]){s+=brick(x,y,m,(anim.drop===i+':'+m.k)?'drop':'')}
+        else s+=ghost(x,y,m,isCur);
+      });
+      s+='</g>';
+      if(r.result) top=i;
+    });
+    if(S.finished&&top===LAST){
+      s+=`<path d="M14 ${FY(LAST)-8}L137 ${FY(LAST)-62}L260 ${FY(LAST)-8}z" fill="#FF5A5F" stroke="#1E2A4A" stroke-width="3" stroke-linejoin="round"/>`;
+      s+=buddy(117,FY(LAST)-62-44,'hop');
+    } else if(top>=0){
+      s+=`<rect x="256" y="${FY(top)+54}" width="58" height="9" rx="4" fill="#9BB5F0" stroke="#1E2A4A" stroke-width="2.5"/>`;
+      s+=buddy(266,FY(top)+16,anim.pass!=null?'hop':'');
+    } else s+=buddy(266,FY(-1)+4-38,'');
+    $('tower').innerHTML=s;
+    const passed=S.rounds.filter(r=>r.result==='pass').length;
+    $('towerTitle').textContent=S.finished&&passed===FLOORS?'타워 완성!':passed?`${passed}층 완성`:'오늘의 타워';
+    const r=S.rounds[S.cur],n=MODES.filter(m=>r.ok[m.k]).length;
+    $('say').textContent=S.finished?(passed===FLOORS?'꼭대기 도착! 고마워!':'오늘도 같이 쌓아서 좋았어!')
+      :r.result==='pass'?'한 층 올라왔다!':S.timer.running?'지금은 미션만 보기!':n===1?'블록 하나 더 모으면 층 완성!':n>=2?'층 완성 준비 끝!':'같이 블록 모으자!';
+    $('track').innerHTML=S.rounds.map((x,i)=>{
+      const c=x.result==='pass'?'pass':x.result==='fail'?'fail':(i===S.cur&&!S.finished?'now':'');
+      return `<span class="chip ${c}">${i+1}층${x.result==='pass'?' 완성':x.result==='fail'?' 쉬어 감':''}</span>`}).join('');
+  }
+
+  function renderStage(){
+    const st=$('stage');
+    if(S.finished){
+      const passed=S.rounds.filter(r=>r.result==='pass').length;
+      const all=passed===FLOORS&&S.rounds.every(r=>MODES.every(m=>r.ok[m.k]));
+      const n=(passed===FLOORS?2:0)+(all?1:0);
+      st.innerHTML=`<div class="finale"><h2>${passed===FLOORS?'타워 완성!':`오늘은 ${passed}층까지 쌓았어요`}</h2>
+        ${n?`<div class="stickers">${Array.from({length:n},(_,i)=>`<div class="sticker${i===2?' bonus':''}">${i===2?'보너스':'스티커'}</div>`).join('')}</div>`:''}
+        <p>${n?`오늘 받는 스티커: <b>${n}개</b>`:'다음 수업에서 꼭대기까지 올라가 보자!'}</p>
+        ${passed===FLOORS&&!all?'<p style="color:var(--soft);font-size:15px">블록 18개를 전부 모으면 보너스 스티커가 하나 더!</p>':''}
+        <button class="btn ghosty" data-act="newclass">새 수업 준비하기</button></div>`;
+      return;
+    }
+    const r=S.rounds[S.cur],tm=S.timer,done=!!r.result;
+    const count=MODES.filter(m=>r.ok[m.k]).length;
+    const nextLabel=S.cur<LAST?'다음 층으로':'오늘 결과 보기';
+    let res='';
+    if(r.result==='pass')res=`<div class="result pass"><p>${S.cur+1}층 완성! 친구가 올라갔어요</p><button class="btn go" data-act="next">${nextLabel}</button></div>`;
+    else if(r.result==='fail')res=`<div class="result fail"><p>괜찮아! 회색 블록으로 받쳐 두자</p><button class="btn ghosty" data-act="next">${nextLabel}</button></div>`;
+    else if(r.again)res=`<div class="result again"><p>블록이 하나 모자라! 한 번 더?</p><div class="btns"><button class="btn" data-act="retry">다시 도전!</button><button class="btn ghosty" data-act="skip">이번엔 넘어가기</button></div></div>`;
+    const frac=tm.total?tm.left/tm.total:0,lit=Math.ceil(frac*10-1e-9);
+    st.innerHTML=`<div class="round">
+      <div class="round-head"><h2>${S.cur+1}층 <small>/ ${FLOORS}층</small></h2>${r.retry?'<span class="retry-tag">다시 도전 중</span>':''}</div>
+      <div class="mission"><label for="mission">이번 층 미션 (선생님이 정해 주세요)</label>
+        <input id="mission" value="${esc(r.mission)}" ${done?'disabled':''} autocomplete="off"></div>
+      <div class="timer">
+        <div class="tbar${frac>0&&frac<=.2?' last':''}" id="tbar" aria-hidden="true">${Array.from({length:10},(_,i)=>`<div class="tb${i>=lit?' gone':''}"></div>`).join('')}</div>
+        <div class="trow">
+          <div class="clock" id="clock">${fmt(tm.left)}</div>
+          <div class="mins"><span>시간</span><button data-act="minus" ${tm.running||done?'disabled':''} aria-label="1분 줄이기">−</button><output>${r.minutes}분</output><button data-act="plus" ${tm.running||done?'disabled':''} aria-label="1분 늘리기">+</button></div>
+          ${done?'':`<div class="btns"><button class="btn" data-act="toggle">${tm.running?'잠깐 멈춤':(tm.left<tm.total&&tm.left>0?'계속하기':'시작!')}</button><button class="btn ghosty" data-act="restart">처음부터</button></div>`}
+        </div>
+      </div>
+      <div class="checks">${MODES.map(m=>`<button class="check ${m.cls}${r.ok[m.k]?' on':''}" data-mode="${m.k}" ${done||r.again?'disabled':''} aria-pressed="${r.ok[m.k]}">
+        <span class="slot"></span><b>${m.name}</b><span class="hint">${m.hint}</span></button>`).join('')}</div>
+      ${res||`<div class="judge-row"><span>블록 ${count}개 · 2개면 층 완성</span><button class="btn go big" data-act="judge">층 쌓기!</button></div>`}
+    </div>`;
+    if(tm.running)runTick();
+  }
+
+  function renderBuddies(){
+    $('buddies').innerHTML='<span>내 블록 친구</span>'+BUDDIES.map(b=>`<button class="bud${S.buddy===b.k?' on':''}" data-buddy="${b.k}" aria-label="블록 친구 색 고르기" style="background:${b.c}"><svg viewBox="0 0 28 28"><circle cx="10" cy="11" r="2.4" fill="#1E2A4A"/><circle cx="18" cy="11" r="2.4" fill="#1E2A4A"/><path d="M10 17q4 4 8 0" stroke="#1E2A4A" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>`).join('');
+  }
+  function renderCharge(){
+    const plans=[{k:'5x2',label:'5분씩 2번',n:2,m:5},{k:'2x5',label:'2분씩 5번',n:5,m:2}];
+    const locked=S.used.some(Boolean);
+    $('plans').innerHTML=plans.map(p=>`<button class="plan${S.plan===p.k?' picked':''}" data-plan="${p.k}" ${locked&&S.plan!==p.k?'disabled':''}>${p.label}</button>`).join('');
+    const p=plans.find(x=>x.k===S.plan);
+    $('slots').innerHTML=p?Array.from({length:p.n},(_,i)=>`<button class="bat${S.used[i]?' used':''}" data-slot="${i}" ${S.used[i]?'disabled':''} aria-label="${p.m}분 충전 ${i+1}번"><i></i></button>`).join('')+`<span class="note">배터리를 누르면 ${p.m}분 충전 시작</span>`
+      :'<span class="note">수업 시작할 때 고르면 충전 배터리가 나타나요</span>';
+  }
+  function renderReset(ask){
+    $('resetBox').innerHTML=ask?`<div class="reset-ask"><span>오늘 기록을 지울까요?</span><button class="yes" data-act="doreset">지우기</button><button data-act="noreset">아니요</button></div>`
+      :`<button class="reset" data-act="askreset">새 수업 시작</button>`;
+  }
+  function all(){renderTower();renderStage();renderCharge();renderBuddies();save();anim={drop:null,pass:null}}
+
+  /* 타이머 */
+  let iv=null;
+  function runTick(){
+    clearInterval(iv);
+    iv=setInterval(()=>{
+      const tm=S.timer;if(!tm.running){clearInterval(iv);return}
+      tm.left=Math.max(0,tm.endAt-Date.now());
+      const frac=tm.left/tm.total,lit=Math.ceil(frac*10-1e-9);
+      const bar=$('tbar');if(bar){bar.classList.toggle('last',frac>0&&frac<=.2);[...bar.children].forEach((b,i)=>b.classList.toggle('gone',i>=lit))}
+      const c=$('clock');if(c)c.textContent=fmt(tm.left);
+      if(tm.left<=0){tm.running=false;clearInterval(iv);unwake();tone([523,659,784,1047,784,1047],'square',.13);save();renderStage();renderTower()}
+    },250);
+  }
+  function setMinutes(m){
+    const r=S.rounds[S.cur];r.minutes=Math.min(30,Math.max(1,m));
+    S.timer={total:r.minutes*60000,left:r.minutes*60000,running:false,endAt:0};
+  }
+
+  /* 충전 */
+  let biv=null;
+  function startBreak(i){
+    const mins=S.plan==='5x2'?5:2,total=mins*60000,endAt=Date.now()+total;
+    if(S.timer.running){S.timer.left=Math.max(0,S.timer.endAt-Date.now());S.timer.running=false;clearInterval(iv)}
+    S.used[i]=true;all();
+    const ov=$('overlay');ov.hidden=false;
+    ov.innerHTML=`<div class="sheet"><h3>충전 중</h3><p>선생님께 말하고 쉬는 중이에요</p><div class="bigbat"><i id="bfill" style="width:0%"></i></div><div class="clock" id="bclock">${fmt(total)}</div><button class="btn ghosty" data-act="endbreak">일찍 돌아왔어요</button></div>`;
+    wake();clearInterval(biv);
+    biv=setInterval(()=>{
+      const left=Math.max(0,endAt-Date.now());
+      const f=$('bfill');if(f)f.style.width=((1-left/total)*100)+'%';
+      const c=$('bclock');if(c)c.textContent=fmt(left);
+      if(left<=0){clearInterval(biv);tone([784,1047,1319,1047,1319,1568],'square',.14);
+        ov.innerHTML=`<div class="sheet ring"><h3>충전 완료! 자리로!</h3><p>블록 친구가 기다리고 있어</p><button class="btn big" data-act="endbreak">자리에 앉았어요</button></div>`}
+    },250);
+  }
+
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    audio();
+    const r=S.rounds[S.cur],tm=S.timer,a=b.dataset.act;
+    if(b.dataset.buddy){S.buddy=b.dataset.buddy;tone([880,1175],'square',.08);all();return}
+    if(b.dataset.mode){
+      const k=b.dataset.mode;r.ok[k]=!r.ok[k];
+      if(r.ok[k]){anim.drop=S.cur+':'+k;tone([392,523],'square',.07)}
+      all();return}
+    if(b.dataset.plan){if(!S.used.some(Boolean)){S.plan=b.dataset.plan;S.used=[];save();renderCharge()}return}
+    if(b.dataset.slot){startBreak(+b.dataset.slot);return}
+    switch(a){
+      case 'minus':setMinutes(r.minutes-1);break;
+      case 'plus':setMinutes(r.minutes+1);break;
+      case 'toggle':
+        if(tm.running){tm.left=Math.max(0,tm.endAt-Date.now());tm.running=false;unwake()}
+        else{if(tm.left<=0)tm.left=tm.total;tm.endAt=Date.now()+tm.left;tm.running=true;wake();tone([660,880],'square',.08)}
+        break;
+      case 'restart':tm.running=false;tm.left=tm.total;unwake();break;
+      case 'judge':{
+        tm.running=false;unwake();
+        const n=MODES.filter(m=>r.ok[m.k]).length;
+        if(n>=2){r.result='pass';r.again=false;anim.pass=S.cur;tone([523,659,784,1047,1319],'square',.1)}
+        else if(!r.retry)r.again=true;
+        else{r.result='fail';r.again=false}
+        break;}
+      case 'retry':r.retry=true;r.again=false;r.ok={seat:false,quiet:false,time:false};tm.left=tm.total;break;
+      case 'skip':r.result='fail';r.again=false;break;
+      case 'next':
+        if(S.cur<LAST){S.cur++;setMinutes(S.rounds[S.cur].minutes)}
+        else{S.finished=true;if(S.rounds.every(x=>x.result==='pass'))tone([523,659,784,1047,784,1047,1319,1568],'square',.12)}
+        break;
+      case 'askreset':renderReset(true);return;
+      case 'noreset':renderReset(false);return;
+      case 'doreset':case 'newclass':{
+        const keep=S.rounds.map(x=>({mission:x.mission,minutes:x.minutes}));
+        S=fresh(S.buddy);S.rounds.forEach((x,i)=>{x.mission=keep[i].mission;x.minutes=keep[i].minutes});setMinutes(S.rounds[0].minutes);
+        clearInterval(iv);renderReset(false);break;}
+      case 'endbreak':clearInterval(biv);$('overlay').hidden=true;$('overlay').innerHTML='';unwake();return;
+      default:return;
+    }
+    all();
+  });
+  document.addEventListener('input',e=>{if(e.target.id==='mission'){S.rounds[S.cur].mission=e.target.value;save()}});
+
+  renderReset(false);all();
+})();
+</script>
+
+</html>
