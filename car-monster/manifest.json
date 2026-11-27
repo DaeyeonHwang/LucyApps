@@ -1,0 +1,12 @@
+{
+  "name": "카 몬스터 레이스",
+  "short_name": "카 몬스터",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eaf0fb",
+  "theme_color": "#16233f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#16233f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>카 몬스터 레이스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eaf0fb; --card:#ffffff; --ink:#16233f; --ink-soft:#5b6785;
+  --navy:#1b2c57; --red:#e8323c; --red-dark:#b51f28; --yellow:#ffc928; --orange:#ff8a1f;
+  --green:#2fbf71; --sky:#cfe6ff; --line:#dbe3f2; --purple:#7a4fd6;
+  --shadow:0 6px 0 rgba(22,35,63,.12), 0 10px 24px rgba(22,35,63,.10);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Jua",system-ui,sans-serif; font-size:17px;
+  -webkit-tap-highlight-color:transparent; min-height:100vh;
+  background-image:
+    linear-gradient(45deg,rgba(27,44,87,.045) 25%,transparent 25%,transparent 75%,rgba(27,44,87,.045) 75%),
+    linear-gradient(45deg,rgba(27,44,87,.045) 25%,transparent 25%,transparent 75%,rgba(27,44,87,.045) 75%);
+  background-size:56px 56px; background-position:0 0,28px 28px;
+}
+h1,h2,h3,.bhs{font-family:"Black Han Sans","Jua",sans-serif;font-weight:400;margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:14px 16px 60px}
+
+/* header */
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;margin-bottom:12px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo svg{width:58px;height:58px;flex:none}
+.logo h1{font-size:clamp(28px,4.6vw,44px);line-height:1;letter-spacing:-.5px;color:var(--navy)}
+.logo h1 em{font-style:normal;color:var(--red)}
+.logo p{margin:4px 0 0;color:var(--ink-soft);font-size:15px}
+.head-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{background:var(--card);border-radius:999px;padding:8px 14px;box-shadow:var(--shadow);font-size:16px;display:flex;align-items:center;gap:6px}
+.pill b{font-family:"Black Han Sans";font-weight:400;font-size:20px;color:var(--red)}
+
+/* tabs */
+.tabs{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:8px;background:var(--card);padding:8px 18px 8px 10px;border-radius:999px;box-shadow:var(--shadow);font-size:20px;border:3px solid transparent}
+.tab svg{width:48px;height:28px}
+.tab.on{border-color:var(--red);background:#fff4f4}
+.tab.add{color:var(--red);padding:8px 18px}
+
+/* boards */
+.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.grid>section{min-width:0}
+@media(min-width:900px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.board{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;border:3px solid var(--navy)}
+.board-head{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 12px;text-align:center}
+.board-head h2{font-size:clamp(26px,3.4vw,36px);line-height:1;color:var(--navy);letter-spacing:-.5px}
+.board-head h2 em{font-style:normal;color:var(--red)}
+.board.mon h2 em{color:var(--orange)}
+.flag{width:40px;height:30px;flex:none}
+.rows{display:flex;flex-direction:column;gap:10px}
+
+.row{display:grid;grid-template-columns:156px minmax(0,1fr);gap:10px;align-items:center;background:#f5f8fe;border:2px solid var(--line);border-radius:18px;padding:8px 10px;position:relative;overflow:hidden}
+.row .pic{width:156px;height:90px;display:grid;place-items:center;position:relative}
+.row .pic svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.row.mon-row .pic{height:124px}
+.info{min-width:0;display:flex;flex-direction:column;gap:6px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{background:var(--navy);color:#fff;padding:3px 12px;border-radius:8px;font-size:17px;transform:skewX(-10deg);display:inline-block}
+.tag span{display:inline-block;transform:skewX(10deg)}
+.mon-row .tag{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.nick{font-size:14px;color:var(--ink-soft)}
+.desc{font-size:16px;color:var(--ink);line-height:1.25}
+.bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.fuel{display:flex;gap:6px;align-items:center}
+.fuel .lbl{font-family:"Black Han Sans";color:var(--red);font-size:15px;margin-right:2px}
+.cell{width:34px;height:42px;border-radius:9px;border:3px solid var(--navy);background:#fff;position:relative;overflow:hidden;padding:0}
+.cell i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(#ffd84a,#ff8a1f);transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.cell.on i{height:100%}
+.cell.pop{animation:pop .5s}
+@keyframes pop{30%{transform:scale(1.3) rotate(-8deg)}60%{transform:scale(.9)}}
+
+.hearts{display:flex;gap:4px;align-items:center}
+.hearts .lbl{font-size:13px;background:var(--sky);color:var(--navy);padding:2px 8px;border-radius:999px;margin-right:2px}
+.heart{width:36px;height:34px;padding:0;position:relative}
+.heart svg{width:100%;height:100%;display:block}
+.heart.gone svg .fill{fill:#eef1f7;stroke:#c7cfdf}
+.heart.gone svg .x{opacity:1}
+.heart.gone svg .shine{opacity:0}
+.heart.hit{animation:hit .5s}
+@keyframes hit{30%{transform:scale(1.4)}100%{transform:scale(1)}}
+.heart.heal{animation:heal .6s}
+@keyframes heal{40%{transform:scale(1.3);filter:drop-shadow(0 0 6px #2fbf71)}}
+
+.go{margin-left:auto;background:var(--red);color:#fff;font-size:18px;padding:9px 14px;border-radius:14px;box-shadow:0 5px 0 var(--red-dark);white-space:nowrap;transition:transform .08s}
+.go:active{transform:translateY(3px);box-shadow:0 2px 0 var(--red-dark)}
+.go[disabled]{background:#e3e8f2;color:#8a94ab;box-shadow:0 5px 0 #c9d0de;cursor:default}
+.mon-row .go{background:var(--orange);box-shadow:0 5px 0 #c9620c}
+.mon-row .go:active{box-shadow:0 2px 0 #c9620c}
+.mon-row .go[disabled]{background:#e3e8f2;color:#8a94ab;box-shadow:0 5px 0 #c9d0de}
+.heal-btn{font-size:13px;color:var(--green);border:2px solid #bfe9d2;background:#f0fbf5;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.heal-btn:active{transform:scale(.95)}
+.count{position:absolute;top:6px;right:10px;font-size:13px;color:var(--ink-soft)}
+
+/* animations on art */
+.drive{animation:drive 1.2s cubic-bezier(.5,0,.8,.4) forwards}
+@keyframes drive{0%{transform:translateX(0)}15%{transform:translateX(-10px)}100%{transform:translateX(700px)}}
+.arrive{animation:arrive .7s cubic-bezier(.2,.9,.3,1)}
+@keyframes arrive{from{transform:translateX(-300px)}}
+.rev{animation:rev .35s 2}
+@keyframes rev{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,-2px)}75%{transform:translate(2px,1px)}}
+.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translate(0) rotate(0)}20%{transform:translate(-6px) rotate(-6deg)}40%{transform:translate(6px) rotate(5deg)}60%{transform:translate(-4px) rotate(-3deg)}80%{transform:translate(3px)}}
+.flash{animation:flash .5s}
+@keyframes flash{30%{filter:brightness(2.2) saturate(.2)}}
+.boom{animation:boom .9s forwards}
+@keyframes boom{40%{transform:scale(1.3) rotate(10deg);filter:brightness(2)}100%{transform:scale(0) rotate(-30deg);opacity:0}}
+.respawn{animation:respawn .7s cubic-bezier(.2,1.5,.4,1)}
+@keyframes respawn{from{transform:scale(0)}}
+.wheel{transform-box:fill-box;transform-origin:center}
+.drive .wheel,.rev .wheel{animation:spin .25s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.rules{margin-top:12px;display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.rules ol{flex:1;min-width:220px;margin:0;padding:10px 12px 10px 34px;background:#f5f8fe;border-radius:14px;font-size:15px;line-height:1.55;color:var(--ink)}
+.prize{flex:none;background:var(--navy);color:#fff;border-radius:14px;padding:10px 16px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.prize b{font-family:"Black Han Sans";font-weight:400;font-size:22px;color:var(--yellow)}
+.prize small{font-size:13px;opacity:.85}
+
+/* garage shelf */
+.shelf{margin-top:16px}
+.shelf h2{font-size:24px;display:flex;align-items:center;gap:8px;color:var(--navy)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:2px 0 14px}
+.mode{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:20px;background:var(--card);border:4px solid var(--line);box-shadow:var(--shadow);font-family:"Black Han Sans";font-size:clamp(20px,3vw,28px);color:var(--ink-soft);transition:transform .1s}
+.mode svg{width:clamp(56px,9vw,96px);height:clamp(40px,6vw,62px);flex:none;filter:grayscale(.7);opacity:.7;overflow:visible}
+.mode:active{transform:scale(.97)}
+.mode.car.on{border-color:var(--red);background:linear-gradient(#fff,#ffeaea);color:var(--red)}
+.mode.mon.on{border-color:var(--orange);background:linear-gradient(#fff,#fff0e0);color:#d9620a}
+.mode.on svg{filter:none;opacity:1}
+.board.fuel-board .rows,.board.mon .rows{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@media(min-width:900px){.board.fuel-board .rows,.board.mon .rows{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px;margin-top:10px}
+.trophy{background:#f5f8fe;border-radius:16px;padding:8px 6px;text-align:center;border:2px solid var(--line)}
+.trophy svg{width:84px;height:54px}
+.trophy.mon svg{height:64px}
+.trophy .n{font-size:14px;color:var(--ink-soft)}
+.trophy .n b{font-family:"Black Han Sans";font-weight:400;color:var(--red);font-size:18px}
+.trophy.none svg{filter:grayscale(1);opacity:.35}
+
+/* setup */
+.setup{max-width:540px;margin:30px auto 0;text-align:center}
+.setup svg{width:220px;height:130px}
+.setup h2{font-size:30px;color:var(--navy);margin:6px 0}
+.big{width:100%;margin-top:14px;background:var(--red);color:#fff;font-size:24px;padding:16px;border-radius:18px;box-shadow:0 6px 0 var(--red-dark)}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,24,48,.55);display:grid;place-items:center;padding:16px;z-index:50;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--card);border-radius:26px;padding:22px;width:min(520px,100%);max-height:90vh;overflow:auto;border:4px solid var(--navy);animation:popin .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes popin{from{transform:scale(.8);opacity:0}}
+.modal h3{font-size:28px;margin-bottom:12px;color:var(--navy)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:16px}
+.field input{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font-family:system-ui,sans-serif}
+.pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pick button{background:#f5f8fe;border-radius:12px;padding:6px 4px;border:3px solid transparent}
+.pick button.on{border-color:var(--red);background:#fff4f4}
+.pick svg{width:100%;height:40px}
+.m-actions{display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap}
+.btn{padding:11px 18px;border-radius:12px;background:#eef2f9;font-size:17px}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.danger{color:var(--red);background:transparent}
+.celebrate{text-align:center;overflow:hidden}
+.celebrate h3{font-size:36px;color:var(--red)}
+.celebrate .stage{height:140px;position:relative;margin:6px 0}
+.celebrate .stage svg{width:220px;height:130px}
+.celebrate .stickers{font-size:40px;letter-spacing:6px}
+.celebrate p{font-size:18px;margin:6px 0 0}
+.zoom{animation:zoomby 2.2s ease-in-out infinite}
+@keyframes zoomby{0%{transform:translateX(-140px)}50%{transform:translateX(140px)}100%{transform:translateX(-140px)}}
+.dance{animation:dance 1s ease-in-out infinite}
+@keyframes dance{0%,100%{transform:rotate(-8deg) scale(.9)}50%{transform:rotate(8deg) scale(1)}}
+
+/* toast, sparks */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 22px;border-radius:999px;font-size:19px;z-index:80;animation:toast 2.3s forwards;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,20px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.spark{position:fixed;width:12px;height:12px;border-radius:3px;z-index:90;pointer-events:none;animation:spark .9s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+.confetti{position:fixed;top:-20px;width:11px;height:15px;z-index:90;pointer-events:none;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* teacher */
+body.teacher{background-color:#fff6e6}
+.t-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff1cf;border:2px dashed #f0b93b;border-radius:16px;padding:10px 12px;margin-bottom:12px;font-size:15px}
+.t-bar b{font-size:18px;margin-right:auto}
+.t-bar .btn{font-size:15px;padding:8px 12px;background:#fff}
+.t-hint{font-size:14px;color:var(--ink-soft);margin:-4px 0 10px}
+.teacher .cell,.teacher .heart{outline:2px dashed #f0b93b;outline-offset:2px}
+.edit-txt{font-size:13px;color:var(--ink-soft);text-decoration:underline;padding:0 4px}
+.foot{margin-top:22px;text-align:center}
+.t-door{font-size:13px;color:#a8b2c8;padding:8px 14px;border-radius:999px}
+
+@media(max-width:560px){
+  .row{grid-template-columns:96px minmax(0,1fr)}
+  .row .pic{width:96px;height:60px}
+  .row.mon-row .pic{height:96px}
+  .cell{width:28px;height:36px}
+  .heart{width:30px;height:28px}
+  .go{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* ---------- 그림 (직접 그린 SVG) ---------- */
+// 공통 그라디언트: 타이어, 휠, 유리, 헤드라이트 빛
+const DEFS = `<defs>
+  <radialGradient id="tire" cx=".5" cy=".5" r=".5"><stop offset=".55" stop-color="#3a3e4a"/><stop offset=".85" stop-color="#1a1c23"/><stop offset="1" stop-color="#050608"/></radialGradient>
+  <radialGradient id="rim" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9d0dc"/><stop offset="1" stop-color="#5d6575"/></radialGradient>
+  <radialGradient id="rimGold" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff6c8"/><stop offset=".5" stop-color="#f2b92b"/><stop offset="1" stop-color="#8a5a00"/></radialGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe4ff"/><stop offset=".35" stop-color="#4f7fbf"/><stop offset="1" stop-color="#0d1a33"/></linearGradient>
+  <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#9aa3b3"/><stop offset=".55" stop-color="#5a6272"/><stop offset="1" stop-color="#d7dce5"/></linearGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#fffbe0"/><stop offset=".35" stop-color="#ffe98a" stop-opacity=".75"/><stop offset="1" stop-color="#ffe98a" stop-opacity="0"/></radialGradient>
+  <linearGradient id="flame" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff3a0"/><stop offset=".4" stop-color="#ffb21f"/><stop offset="1" stop-color="#ff3d1f" stop-opacity="0"/></linearGradient>
+</defs>`;
+const BODY = (id, a, b, c) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".45" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient>`;
+function WHEEL(x, y, r = 17, rim = 'rim', tread = false){
+  const sp = [0,1,2,3,4].map(k => { const a = k*72*Math.PI/180 - Math.PI/2;
+    return `<path d="M${(x+Math.cos(a)*r*.18).toFixed(1)} ${(y+Math.sin(a)*r*.18).toFixed(1)} L${(x+Math.cos(a)*r*.58).toFixed(1)} ${(y+Math.sin(a)*r*.58).toFixed(1)}" stroke="url(#${rim})" stroke-width="${(r*.2).toFixed(1)}" stroke-linecap="round"/>`; }).join('');
+  return `<g class="wheel">
+    <circle cx="${x}" cy="${y}" r="${r}" fill="url(#tire)"/>
+    ${tread ? `<circle cx="${x}" cy="${y}" r="${r-2}" fill="none" stroke="#0a0b0f" stroke-width="4" stroke-dasharray="4 3"/>` : `<circle cx="${x}" cy="${y}" r="${r-1.5}" fill="none" stroke="#4a4f5c" stroke-width="1"/>`}
+    <circle cx="${x}" cy="${y}" r="${r*.68}" fill="url(#${rim})" stroke="#2a2d36" stroke-width="1"/>
+    <circle cx="${x}" cy="${y}" r="${r*.56}" fill="#23262f"/>
+    ${sp}
+    <circle cx="${x}" cy="${y}" r="${r*.17}" fill="url(#${rim})" stroke="#2a2d36" stroke-width="1"/>
+    <path d="M${x-r*.5} ${y-r*.62} A${r*.8} ${r*.8} 0 0 1 ${x+r*.2} ${y-r*.78}" stroke="#fff" stroke-opacity=".35" stroke-width="1.5" fill="none"/>
+  </g>`;
+}
+const SHADOW = (y = 106, rx = 90) => `<ellipse cx="100" cy="${y}" rx="${rx}" ry="5" fill="#16233f" opacity=".18"/>`;
+const WELL = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r+4}" fill="#0b0f1c"/>`;
+const SPEED = `<path d="M-18 54 H0 M-26 66 H-4 M-14 78 H2" stroke="#16233f" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>`;
+
+const CARS = [
+  { // 0 강철 몬스터 트럭
+    nick:'강철 몬스터트럭',
+    svg:()=>`<svg viewBox="0 0 200 112">${DEFS}<defs>${BODY('b0','#f4f7fb','#a9b3c4','#4e5768')}</defs>${SHADOW(108,92)}
+      <path d="M46 66 L46 84 M154 66 L154 84" stroke="#3a3f4b" stroke-width="6"/>
+      <path d="M40 66 l4 4 -8 4 8 4 -8 4 4 2 M160 66 l-4 4 8 4 -8 4 8 4 -4 2" stroke="#ff8a1f" stroke-width="3" fill="none" stroke-linejoin="round"/>
+      <path d="M12 66 L14 46 Q15 42 20 42 L58 40 L76 20 Q78 18 82 18 L130 18 Q134 18 136 20 L152 40 L186 42 Q192 43 192 50 L192 66 Z" fill="url(#b0)" stroke="#2c3240" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M82 24 L104 24 L104 40 L66 40 Z" fill="url(#glass)" stroke="#2c3240" stroke-width="1.5"/>
+      <path d="M110 24 L130 24 L144 40 L110 40 Z" fill="url(#glass)" stroke="#2c3240" stroke-width="1.5"/>
+      <path d="M86 26 L94 26 L80 38 L74 38 Z" fill="#fff" opacity=".45"/>
+      <path d="M18 46 L60 44 M152 44 L188 46" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>
+      <path d="M58 42 V64 M107 42 V64" stroke="#2c3240" stroke-opacity=".45" stroke-width="1.5"/>
+      <path d="M14 56 H190" stroke="#2c3240" stroke-opacity=".35" stroke-width="1.5"/>
+      <rect x="84" y="12" width="44" height="6" rx="2" fill="#23262f"/>
+      <circle cx="92" cy="15" r="2.2" fill="#ffe98a"/><circle cx="101" cy="15" r="2.2" fill="#ffe98a"/><circle cx="110" cy="15" r="2.2" fill="#ffe98a"/><circle cx="119" cy="15" r="2.2" fill="#ffe98a"/>
+      <path d="M188 44 L198 46 L198 66 L190 66" stroke="#23262f" stroke-width="3.5" fill="none" stroke-linejoin="round"/><path d="M190 52 H198 M190 59 H198" stroke="#23262f" stroke-width="2.5"/>
+      <circle cx="198" cy="48" r="16" fill="url(#glow)"/><rect x="184" y="45" width="8" height="5" rx="2" fill="#fffbe0" stroke="#2c3240"/>
+      <rect x="12" y="48" width="5" height="7" rx="1" fill="#ff3344"/>
+      <path d="M20 66 Q46 38 72 66 M128 66 Q154 38 180 66" stroke="#23262f" stroke-width="7" fill="none" stroke-linecap="round"/>
+      ${WHEEL(46,84,24,'rim',true)}${WHEEL(154,84,24,'rim',true)}</svg>` },
+  { // 1 파란 번개 (슈퍼카)
+    nick:'파란 번개',
+    svg:()=>`<svg viewBox="0 0 200 112">${DEFS}<defs>${BODY('b1','#7fb2ff','#2563eb','#0f2a78')}</defs>${SHADOW()}${SPEED}
+      <path d="M6 62 L22 58 L24 62 L10 66 Z" fill="#0f2a78"/><path d="M16 62 L20 70" stroke="#0f2a78" stroke-width="3"/>
+      <path d="M8 84 C6 74 10 68 22 66 L58 60 C76 50 92 40 118 40 C138 40 152 48 166 58 L186 62 C194 64 197 72 195 84 Z" fill="url(#b1)" stroke="#0a1a4d" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M70 60 C84 50 98 45 118 45 C130 45 140 50 148 58 Z" fill="url(#glass)" stroke="#0a1a4d" stroke-width="1.5"/>
+      <path d="M92 49 L102 46 L88 59 L78 59 Z" fill="#fff" opacity=".45"/><path d="M112 45 L116 58" stroke="#0a1a4d" stroke-width="2"/>
+      <path d="M24 68 L60 62 C80 52 96 45 118 44" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M120 66 L152 63 L142 76 L124 76 Z" fill="#0a1020"/><path d="M126 68 L146 66 M126 72 L144 70" stroke="#2a3550" stroke-width="1.5"/>
+      <path d="M38 74 L68 70 L60 76 L98 71" stroke="#ffd84a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M26 82 H180" stroke="#0a1020" stroke-width="4"/>
+      ${WELL(48,88,17)}${WELL(156,88,17)}
+      <circle cx="194" cy="68" r="16" fill="url(#glow)"/><path d="M176 63 L192 66 L190 70 L174 68 Z" fill="#fffbe0" stroke="#0a1a4d" stroke-width="1"/>
+      <path d="M8 70 L20 68 L20 73 L8 75 Z" fill="#ff2b40"/>
+      <rect x="40" y="80" width="10" height="7" rx="2" fill="#e8323c"/><rect x="148" y="80" width="10" height="7" rx="2" fill="#e8323c"/>
+      ${WHEEL(48,88,17)}${WHEEL(156,88,17)}</svg>` },
+  { // 2 노란 레이서 (포뮬러)
+    nick:'노란 레이서',
+    svg:()=>`<svg viewBox="0 0 200 112">${DEFS}<defs>${BODY('b2','#fff2a0','#ffc928','#c27c00')}</defs>${SHADOW()}${SPEED}
+      <rect x="6" y="44" width="5" height="34" fill="#1d1f27"/><rect x="4" y="40" width="30" height="9" rx="2" fill="#1d1f27"/><rect x="6" y="42" width="26" height="3" fill="#ffc928"/>
+      <path d="M18 76 L40 66 L88 61 L98 48 Q100 46 104 46 L128 46 Q132 46 134 50 L142 62 L172 66 L196 76 L196 82 L18 84 Z" fill="url(#b2)" stroke="#5c3d00" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M96 48 L112 38 L120 48 Z" fill="#1d1f27"/>
+      <path d="M62 70 L126 66 L132 80 L62 82 Z" fill="#1d1f27" opacity=".85"/><path d="M68 74 L124 71" stroke="#ffc928" stroke-width="2"/>
+      <ellipse cx="117" cy="56" rx="14" ry="6" fill="#0b0f1c"/>
+      <circle cx="116" cy="50" r="9" fill="#e8323c" stroke="#6b0f15" stroke-width="2"/><path d="M110 48 Q118 44 125 49 L124 53 L110 53 Z" fill="#1a2238"/><path d="M112 47 L118 45" stroke="#9fd3ff" stroke-width="1.5"/>
+      <path d="M104 52 Q116 36 134 52" stroke="#1d1f27" stroke-width="3" fill="none"/>
+      <path d="M40 66 L170 66" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>
+      <circle cx="84" cy="64" r="7" fill="#fff" stroke="#1d1f27" stroke-width="1.5"/><text x="84" y="68" font-size="10" text-anchor="middle" font-family="Black Han Sans" fill="#16233f">1</text>
+      ${WHEEL(44,86,20)}${WHEEL(164,86,20)}
+      <path d="M170 84 L198 81 L198 88 L168 89 Z" fill="#1d1f27"/><rect x="194" y="76" width="4" height="13" fill="#e8323c"/></svg>` },
+  { // 3 초록 랠리
+    nick:'초록 랠리',
+    svg:()=>`<svg viewBox="0 0 200 112">${DEFS}<defs>${BODY('b3','#c4ff8a','#5cc423','#245c0a')}</defs>${SHADOW()}
+      <path d="M10 84 L12 62 Q14 56 30 54 L54 52 L74 32 Q78 28 86 28 L136 28 Q142 28 146 32 L164 52 L186 56 Q194 58 194 66 L194 84 Z" fill="url(#b3)" stroke="#173d05" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M80 34 L104 34 L104 51 L62 51 Z" fill="url(#glass)" stroke="#173d05" stroke-width="1.5"/>
+      <path d="M110 34 L136 34 L156 51 L110 51 Z" fill="url(#glass)" stroke="#173d05" stroke-width="1.5"/>
+      <path d="M84 35 L92 35 L76 50 L68 50 Z" fill="#fff" opacity=".45"/>
+      <path d="M12 74 Q80 58 194 66 L194 73 Q92 66 12 82 Z" fill="#fff"/><path d="M12 80 Q90 68 194 76 L194 79 Q92 72 12 84 Z" fill="#ff8a1f"/>
+      <circle cx="106" cy="62" r="10" fill="#fff" stroke="#173d05" stroke-width="2"/><text x="106" y="67" font-size="13" text-anchor="middle" font-family="Black Han Sans" fill="#16233f">7</text>
+      <rect x="86" y="21" width="44" height="7" rx="2" fill="#1d1f27"/>
+      <circle cx="95" cy="24.5" r="3" fill="#ffe98a" stroke="#555"/><circle cx="108" cy="24.5" r="3" fill="#ffe98a" stroke="#555"/><circle cx="121" cy="24.5" r="3" fill="#ffe98a" stroke="#555"/>
+      <path d="M14 58 L54 54" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
+      ${WELL(50,88,17)}${WELL(154,88,17)}
+      <circle cx="196" cy="62" r="14" fill="url(#glow)"/><rect x="186" y="59" width="8" height="6" rx="2" fill="#fffbe0" stroke="#173d05"/>
+      <rect x="10" y="62" width="5" height="7" rx="1" fill="#ff2b40"/>
+      <rect x="72" y="82" width="5" height="13" rx="1" fill="#e8323c"/><rect x="176" y="82" width="5" height="13" rx="1" fill="#e8323c"/>
+      ${WHEEL(50,88,17,'rimGold')}${WHEEL(154,88,17,'rimGold')}</svg>` },
+  { // 4 보라 머슬
+    nick:'보라 머슬',
+    svg:()=>`<svg viewBox="0 0 200 112">${DEFS}<defs>${BODY('b4','#c9a2ff','#7a3fd6','#2e0f66')}</defs>${SHADOW()}
+      <path d="M8 82 L-12 76 L-4 80 L-16 84 L-4 86 L8 86 Z" fill="url(#flame)"/>
+      <path d="M6 84 L8 64 Q10 58 22 58 L50 56 L72 38 Q76 36 82 36 L124 36 Q130 36 134 40 L150 56 L184 58 Q194 60 194 70 L194 84 Z" fill="url(#b4)" stroke="#1e0745" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M78 41 L102 41 L102 55 L60 55 Z" fill="url(#glass)" stroke="#1e0745" stroke-width="1.5"/>
+      <path d="M108 41 L128 41 L142 55 L108 55 Z" fill="url(#glass)" stroke="#1e0745" stroke-width="1.5"/>
+      <path d="M82 42 L90 42 L74 54 L66 54 Z" fill="#fff" opacity=".45"/>
+      <path d="M8 66 H194 M8 72 H194" stroke="#fff" stroke-width="3.5"/>
+      <path d="M22 60 L50 58 M150 58 L184 60" stroke="#fff" stroke-opacity=".6" stroke-width="2"/>
+      <path d="M154 56 L172 51 L178 57 Z" fill="#1d1f27"/>
+      ${WELL(50,88,18)}${WELL(156,88,18)}
+      <rect x="182" y="76" width="16" height="6" rx="2" fill="url(#chrome)"/><rect x="2" y="76" width="12" height="6" rx="2" fill="url(#chrome)"/>
+      <circle cx="196" cy="64" r="15" fill="url(#glow)"/><circle cx="190" cy="64" r="4" fill="#fffbe0" stroke="#1e0745"/>
+      <rect x="6" y="62" width="6" height="6" rx="1" fill="#ff2b40"/>
+      ${WHEEL(50,88,18)}${WHEEL(156,88,18)}</svg>` },
+];
+
+/* 몬스터: 120x120 */
+const MSHADOW = `<ellipse cx="60" cy="113" rx="46" ry="5" fill="#16233f" opacity=".2"/>`;
+const GLOWEYE = (x, y, r, c1, c2, slit = true, id = 'ge') => `
+  <circle cx="${x}" cy="${y}" r="${r+3}" fill="${c1}" opacity=".35"/>
+  <circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})" stroke="#1a0a00" stroke-width="2"/>
+  ${slit ? `<ellipse cx="${x}" cy="${y}" rx="${r*.22}" ry="${r*.75}" fill="#1a0a00"/>` : `<circle cx="${x+1}" cy="${y+1}" r="${r*.45}" fill="#1a0a00"/>`}
+  <circle cx="${x-r*.35}" cy="${y-r*.4}" r="${r*.22}" fill="#fff"/>`;
+const MONS = [
+  { nick:'꿀꺽 상자', svg:()=>`<svg viewBox="0 0 120 120"><defs>
+      ${BODY('m0w','#e8a15c','#b8682a','#6e3610')}
+      ${BODY('m0g','#fff2b0','#e8b42a','#8a5a00')}
+      <radialGradient id="m0e"><stop offset="0" stop-color="#fffbd0"/><stop offset=".6" stop-color="#ffd23a"/><stop offset="1" stop-color="#ff8a00"/></radialGradient>
+      <radialGradient id="m0m"><stop offset="0" stop-color="#7a1020"/><stop offset="1" stop-color="#1a0208"/></radialGradient>
+      <linearGradient id="m0t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8fa3"/><stop offset="1" stop-color="#d63a5a"/></linearGradient></defs>${MSHADOW}
+      <path d="M14 62 H106 L101 108 H19 Z" fill="url(#m0w)" stroke="#3d1a04" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M17 80 H103 M18 95 H102" stroke="#5a2a08" stroke-opacity=".45" stroke-width="2"/>
+      <ellipse cx="60" cy="64" rx="42" ry="16" fill="url(#m0m)"/>
+      <path d="M32 64 Q46 82 60 74 Q74 82 88 64 Q74 70 60 68 Q46 70 32 64 Z" fill="url(#m0t)" stroke="#7a1020" stroke-width="1.5"/>
+      <text x="44" y="75" font-size="9" font-family="Black Han Sans" fill="#fff" transform="rotate(-10 44 75)">A</text><text x="57" y="78" font-size="9" font-family="Black Han Sans" fill="#fff">B</text><text x="70" y="75" font-size="9" font-family="Black Han Sans" fill="#fff" transform="rotate(10 70 75)">C</text>
+      <path d="M20 64 L26 54 L32 64 L38 52 L44 64 M76 64 L82 52 L88 64 L94 54 L100 64" fill="#fffdf2" stroke="#5a2a08" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M12 60 L108 60 L102 24 Q60 2 18 24 Z" fill="url(#m0w)" stroke="#3d1a04" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M22 26 Q60 8 98 26" stroke="#ffd9a8" stroke-opacity=".6" stroke-width="2.5" fill="none"/>
+      <path d="M20 60 L26 70 L32 60 L38 72 L44 60 M76 60 L82 72 L88 60 L94 70 L100 60" fill="#fffdf2" stroke="#5a2a08" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="24" y="16" width="9" height="44" fill="url(#m0g)" stroke="#5a3a00" stroke-width="1.5" transform="skewX(-6)"/>
+      <rect x="92" y="16" width="9" height="44" fill="url(#m0g)" stroke="#5a3a00" stroke-width="1.5" transform="skewX(6)"/>
+      <rect x="24" y="62" width="9" height="46" fill="url(#m0g)" stroke="#5a3a00" stroke-width="1.5"/><rect x="87" y="62" width="9" height="46" fill="url(#m0g)" stroke="#5a3a00" stroke-width="1.5"/>
+      <circle cx="28.5" cy="70" r="1.8" fill="#5a3a00"/><circle cx="28.5" cy="100" r="1.8" fill="#5a3a00"/><circle cx="91.5" cy="70" r="1.8" fill="#5a3a00"/><circle cx="91.5" cy="100" r="1.8" fill="#5a3a00"/>
+      <path d="M52 50 H68 V62 H52 Z" fill="url(#m0g)" stroke="#5a3a00" stroke-width="1.5"/><circle cx="60" cy="55" r="2.2" fill="#3d1a04"/><path d="M60 56 V60" stroke="#3d1a04" stroke-width="2"/>
+      ${GLOWEYE(44,38,8,'#ffb700','',true,'m0e')}${GLOWEYE(76,38,8,'#ffb700','',true,'m0e')}
+      <path d="M32 26 L52 33 M88 26 L68 33" stroke="#2a0e00" stroke-width="4.5" stroke-linecap="round"/></svg>` },
+  { nick:'철자 뱀', svg:()=>`<svg viewBox="0 0 120 120"><defs>
+      ${BODY('m1b','#9cf07a','#2fb64a','#0d5a22')}
+      <linearGradient id="m1y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#e6c43a"/></linearGradient>
+      <radialGradient id="m1e"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffe14a"/><stop offset="1" stop-color="#ff7a00"/></radialGradient>
+      <pattern id="m1s" width="8" height="6" patternUnits="userSpaceOnUse"><path d="M0 6 Q4 0 8 6" fill="none" stroke="#0d5a22" stroke-opacity=".35" stroke-width="1.2"/></pattern></defs>${MSHADOW}
+      <ellipse cx="60" cy="100" rx="46" ry="13" fill="url(#m1b)" stroke="#063314" stroke-width="3"/><ellipse cx="60" cy="100" rx="46" ry="13" fill="url(#m1s)"/>
+      <ellipse cx="58" cy="86" rx="35" ry="11" fill="url(#m1b)" stroke="#063314" stroke-width="3"/><ellipse cx="58" cy="86" rx="35" ry="11" fill="url(#m1s)"/>
+      <path d="M48 86 Q34 62 50 44 Q60 34 74 38" fill="none" stroke="#063314" stroke-width="22" stroke-linecap="round"/>
+      <path d="M48 86 Q34 62 50 44 Q60 34 74 38" fill="none" stroke="url(#m1b)" stroke-width="16" stroke-linecap="round"/>
+      <path d="M52 84 Q42 64 54 48" fill="none" stroke="url(#m1y)" stroke-width="6" stroke-linecap="round" stroke-dasharray="5 2"/>
+      <path d="M58 28 Q78 14 100 26 Q110 32 104 42 Q94 52 74 48 Q60 46 58 38 Z" fill="url(#m1b)" stroke="#063314" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M64 26 Q80 18 96 24" stroke="#d6ffc2" stroke-opacity=".7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M66 30 L58 18 L72 26 Z M86 22 L84 10 L94 22 Z" fill="#0d5a22" stroke="#063314" stroke-width="1.5" stroke-linejoin="round"/>
+      ${GLOWEYE(74,32,6,'#ffcc00','',true,'m1e')}${GLOWEYE(90,30,6,'#ffcc00','',true,'m1e')}
+      <path d="M68 25 L80 28 M96 23 L86 26" stroke="#063314" stroke-width="3" stroke-linecap="round"/>
+      <path d="M78 44 Q92 46 104 40" stroke="#063314" stroke-width="2.5" fill="none"/>
+      <path d="M86 45 L88 52 L90 45 Z M96 43 L98 50 L100 42 Z" fill="#fff" stroke="#063314" stroke-width="1"/>
+      <path d="M104 40 L114 42 L118 38 M114 42 L118 46" stroke="#e8323c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="60" cy="99" r="12" fill="url(#m1y)" stroke="#063314" stroke-width="2.5"/><text x="60" y="105" font-size="16" text-anchor="middle" font-family="Black Han Sans" fill="#063314">A</text></svg>` },
+  { nick:'대문자 로봇', svg:()=>`<svg viewBox="0 0 120 120"><defs>
+      ${BODY('m2o','#ffc08a','#ff7a22','#a33a00')}
+      ${BODY('m2d','#9aa3b3','#5a6272','#2a2f3a')}
+      <radialGradient id="m2c"><stop offset="0" stop-color="#e8ffff"/><stop offset=".5" stop-color="#5cf2ff"/><stop offset="1" stop-color="#0a8fb0"/></radialGradient>
+      <radialGradient id="m2r"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#ff5050"/><stop offset="1" stop-color="#a00000"/></radialGradient></defs>${MSHADOW}
+      <circle cx="60" cy="6" r="9" fill="#ff5050" opacity=".3"/><path d="M60 8 V18" stroke="#2a2f3a" stroke-width="4"/><circle cx="60" cy="6" r="5" fill="url(#m2r)"/>
+      <rect x="32" y="18" width="56" height="36" rx="10" fill="url(#m2o)" stroke="#4a1a00" stroke-width="3"/>
+      <rect x="26" y="28" width="7" height="14" rx="3" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="1.5"/><rect x="87" y="28" width="7" height="14" rx="3" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="1.5"/>
+      <rect x="38" y="25" width="44" height="15" rx="7" fill="#0b1426" stroke="#2a2f3a" stroke-width="1.5"/>
+      <circle cx="51" cy="32.5" r="8" fill="#5cf2ff" opacity=".3"/><circle cx="69" cy="32.5" r="8" fill="#5cf2ff" opacity=".3"/>
+      <circle cx="51" cy="32.5" r="4.5" fill="url(#m2c)"/><circle cx="69" cy="32.5" r="4.5" fill="url(#m2c)"/>
+      <rect x="44" y="44" width="32" height="6" rx="2" fill="#2a2f3a"/><path d="M48 44 V50 M54 44 V50 M60 44 V50 M66 44 V50 M72 44 V50" stroke="#9aa3b3" stroke-width="1.5"/>
+      <path d="M38 22 H82" stroke="#ffe0c4" stroke-opacity=".8" stroke-width="2" stroke-linecap="round"/>
+      <rect x="50" y="54" width="20" height="5" fill="url(#m2d)"/>
+      <rect x="26" y="58" width="68" height="40" rx="9" fill="url(#m2o)" stroke="#4a1a00" stroke-width="3"/>
+      <circle cx="32" cy="64" r="1.8" fill="#4a1a00"/><circle cx="88" cy="64" r="1.8" fill="#4a1a00"/><circle cx="32" cy="92" r="1.8" fill="#4a1a00"/><circle cx="88" cy="92" r="1.8" fill="#4a1a00"/>
+      <rect x="44" y="64" width="32" height="27" rx="5" fill="#0b1426" stroke="#2a2f3a" stroke-width="2"/>
+      <text x="60" y="86" font-size="22" text-anchor="middle" font-family="Black Han Sans" fill="#5cf2ff" stroke="#e8ffff" stroke-width=".6">A</text>
+      <rect x="6" y="58" width="18" height="30" rx="8" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="2.5"/><rect x="96" y="58" width="18" height="30" rx="8" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="2.5"/>
+      <path d="M8 88 L4 100 L12 96 L15 104 L20 96 L24 88 Z M112 88 L116 100 L108 96 L105 104 L100 96 L96 88 Z" fill="url(#m2o)" stroke="#4a1a00" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="32" y="98" width="22" height="12" rx="4" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="2"/><rect x="66" y="98" width="22" height="12" rx="4" fill="url(#m2d)" stroke="#2a2f3a" stroke-width="2"/>
+      <path d="M35 104 H51 M69 104 H85" stroke="#1d1f27" stroke-width="2" stroke-dasharray="3 2"/></svg>` },
+  { nick:'점점 바위', svg:()=>`<svg viewBox="0 0 120 120"><defs>
+      <radialGradient id="m3b" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#c9a8ff"/><stop offset=".55" stop-color="#7c4fd0"/><stop offset="1" stop-color="#341a6e"/></radialGradient>
+      <radialGradient id="m3e"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffe14a"/><stop offset="1" stop-color="#ff7a00"/></radialGradient>
+      <filter id="m3g"><feGaussianBlur stdDeviation="1.6"/></filter></defs>${MSHADOW}
+      <path d="M14 100 L8 72 L20 50 L18 32 L40 20 L58 10 L80 18 L100 24 L106 48 L116 70 L108 100 L60 110 Z" fill="url(#m3b)" stroke="#1f0c47" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M20 50 L40 44 L58 10 M40 44 L36 70 L8 72 M80 18 L76 40 L106 48 M76 40 L86 70 L116 70 M36 70 L60 80 L86 70 M60 80 L60 110 M60 80 L14 100 M86 70 L108 100" stroke="#1f0c47" stroke-opacity=".35" stroke-width="1.5" fill="none"/>
+      <path d="M40 20 L58 10 L80 18 L76 26 L58 22 Z" fill="#e2d2ff" opacity=".45"/>
+      <path d="M92 58 L98 66 L94 74" stroke="#1f0c47" stroke-width="2" fill="none"/><path d="M24 82 L30 88 L26 96" stroke="#1f0c47" stroke-width="2" fill="none"/>
+      ${GLOWEYE(44,52,9,'#ffcc00','',false,'m3e')}${GLOWEYE(76,52,9,'#ffcc00','',false,'m3e')}
+      <path d="M30 38 L56 46 M90 38 L64 46" stroke="#1f0c47" stroke-width="5" stroke-linecap="round"/>
+      <path d="M40 78 L48 72 L54 78 L60 72 L66 78 L72 72 L80 78 Q60 92 40 78 Z" fill="#1f0c47"/><path d="M48 72 L50 77 L54 78 Z M66 78 L70 77 L72 72 Z" fill="#fff"/>
+      <g filter="url(#m3g)" opacity=".8"><text x="14" y="36" font-size="22" font-family="Black Han Sans" fill="#ffe14a">?</text><text x="100" y="20" font-size="22" font-family="Black Han Sans" fill="#ffe14a">!</text><circle cx="60" cy="98" r="5" fill="#ffe14a"/></g>
+      <text x="14" y="36" font-size="22" font-family="Black Han Sans" fill="#fff6b0" stroke="#7a4a00" stroke-width=".8">?</text>
+      <text x="100" y="20" font-size="22" font-family="Black Han Sans" fill="#fff6b0" stroke="#7a4a00" stroke-width=".8">!</text>
+      <circle cx="60" cy="98" r="4" fill="#fff6b0" stroke="#7a4a00" stroke-width=".8"/></svg>` },
+  { nick:'눈알 문어', svg:()=>`<svg viewBox="0 0 120 120"><defs>
+      <radialGradient id="m4b" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff3a8"/><stop offset=".5" stop-color="#ffcc22"/><stop offset="1" stop-color="#c27800"/></radialGradient>
+      <radialGradient id="m4i" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#0a1430"/><stop offset=".35" stop-color="#1e5bd8"/><stop offset=".8" stop-color="#5cc8ff"/><stop offset="1" stop-color="#0f3a8a"/></radialGradient>
+      <radialGradient id="m4w" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff"/><stop offset=".85" stop-color="#f1f3f8"/><stop offset="1" stop-color="#c9cfdc"/></radialGradient></defs>${MSHADOW}
+      <g fill="none" stroke-linecap="round">
+        <g stroke="#8a5200" stroke-width="12"><path d="M34 70 Q12 82 18 100 Q24 110 32 102"/><path d="M48 76 Q38 98 50 108"/><path d="M72 76 Q82 98 70 108"/><path d="M86 70 Q108 82 102 100 Q96 110 88 102"/><path d="M28 58 Q4 58 6 78"/><path d="M92 58 Q116 58 114 78"/></g>
+        <g stroke="#ffcc22" stroke-width="8"><path d="M34 70 Q12 82 18 100 Q24 110 32 102"/><path d="M48 76 Q38 98 50 108"/><path d="M72 76 Q82 98 70 108"/><path d="M86 70 Q108 82 102 100 Q96 110 88 102"/><path d="M28 58 Q4 58 6 78"/><path d="M92 58 Q116 58 114 78"/></g></g>
+      <g fill="#ffe7a0" stroke="#c27800" stroke-width=".8"><circle cx="17" cy="90" r="2.2"/><circle cx="22" cy="100" r="2"/><circle cx="43" cy="94" r="2.2"/><circle cx="77" cy="94" r="2.2"/><circle cx="103" cy="90" r="2.2"/><circle cx="98" cy="100" r="2"/><circle cx="8" cy="68" r="2"/><circle cx="112" cy="68" r="2"/></g>
+      <path d="M30 22 L26 6 L40 16 Z M90 22 L94 6 L80 16 Z" fill="#ff7a22" stroke="#8a3a00" stroke-width="2" stroke-linejoin="round"/>
+      <ellipse cx="60" cy="46" rx="38" ry="35" fill="url(#m4b)" stroke="#7a4a00" stroke-width="3"/>
+      <circle cx="30" cy="38" r="4" fill="#e8a100" opacity=".6"/><circle cx="90" cy="30" r="5" fill="#e8a100" opacity=".6"/><circle cx="88" cy="58" r="3" fill="#e8a100" opacity=".6"/>
+      <circle cx="60" cy="40" r="19" fill="url(#m4w)" stroke="#7a4a00" stroke-width="2.5"/>
+      <path d="M44 34 Q50 30 52 36 M70 48 Q74 52 76 46" stroke="#ff6b6b" stroke-width="1" fill="none"/>
+      <circle cx="62" cy="42" r="10" fill="url(#m4i)"/><circle cx="63" cy="43" r="4.5" fill="#050a18"/>
+      <circle cx="57" cy="37" r="3" fill="#fff"/><circle cx="66" cy="46" r="1.3" fill="#fff"/>
+      <path d="M40 30 Q60 14 80 30" stroke="#7a4a00" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M44 64 Q60 74 76 64 Q60 70 44 64 Z" fill="#5a1a10" stroke="#7a4a00" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M50 66 L52 70 L54 67 Z M66 67 L68 70 L70 66 Z" fill="#fff"/>
+      <path d="M36 26 Q46 16 58 14" stroke="#fffbe0" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+];
+const FLAG = `<svg class="flag" viewBox="0 0 40 30"><path d="M2 2 V29" stroke="#16233f" stroke-width="2.5"/>${[0,1,2,3].map(r=>[0,1,2,3,4].map(c=>(r+c)%2?'':`<rect x="${4+c*7}" y="${2+r*6}" width="7" height="6" fill="#16233f"/>`).join('')).join('')}<rect x="4" y="2" width="35" height="24" fill="none" stroke="#16233f" stroke-width="1.5"/></svg>`;
+const HEART = `<svg viewBox="0 0 36 34"><defs><radialGradient id="hg" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffb3c2"/><stop offset=".5" stop-color="#ff4d6d"/><stop offset="1" stop-color="#b3123a"/></radialGradient></defs><path class="fill" d="M18 31 C4 21 2 13 5 8 C8 3 15 3 18 9 C21 3 28 3 31 8 C34 13 32 21 18 31 Z" fill="url(#hg)" stroke="#8a1530" stroke-width="2.5" stroke-linejoin="round"/><path class="shine" d="M9 9 Q11 6 14 7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><path class="x" d="M11 11 L25 25 M25 11 L11 25" stroke="#c7cfdf" stroke-width="3" stroke-linecap="round" opacity="0"/></svg>`;
+
+/* ---------- 미션·몬스터 기본값 (종이 시트와 같음) ---------- */
+const DEFAULT_MISSIONS = [
+  {name:'Spelling', desc:'보기와 철자를 똑같이 쓰기!'},
+  {name:'Sitting', desc:'엉덩이를 의자에 붙이고 앉기!'},
+  {name:'Handwriting', desc:'줄에 맞춰 쓰고, 단어 사이 띄우기!'},
+  {name:'Reading Finger', desc:'손가락으로 단어를 하나씩 짚으며 읽기!'},
+  {name:'Checking', desc:'다 쓴 문장을 소리 내어 읽기!'},
+];
+const DEFAULT_MONSTERS = [
+  {name:'Missing Word', desc:'보기의 단어를 빠짐없이 썼는지 확인!'},
+  {name:'Spelling', desc:'보기와 내 단어를 한 글자씩 비교!'},
+  {name:'Capital Letter', desc:'문장 첫 글자 대문자 확인!'},
+  {name:'Punctuation', desc:'문장 끝에 마침표, 물음표, 느낌표 확인!'},
+  {name:'Bonus', desc:'다른 네 가지에 없는 실수를 찾아 고치기!'},
+];
+const FUEL_MAX = 4, HP_MAX = 4;
+
+/* ---------- 저장 ---------- */
+const KEY = 'car-monster-v1';
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const uid = () => Math.random().toString(36).slice(2,9);
+function freshStudent(name, car){
+  return { id:uid(), name, car,
+    cars: DEFAULT_MISSIONS.map(()=>({fuel:0,last:'',laps:0})),
+    mons: DEFAULT_MONSTERS.map(()=>({hp:HP_MAX,last:'',kills:0})),
+    stickers:0, owed:0 };
+}
+function load(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(KEY)); } catch {}
+  if (!s || !Array.isArray(s.students)) s = {};
+  return {
+    students: s.students || [], cur: s.cur || null,
+    missions: s.missions || DEFAULT_MISSIONS.map(m=>({...m})),
+    monsters: s.monsters || DEFAULT_MONSTERS.map(m=>({...m})),
+    pin: s.pin || '', sound: s.sound !== false, daily: s.daily !== false,
+    undo: s.undo || [], view: s.view === 'mon' ? 'mon' : 'car',
+  };
+}
+let state = load();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
+window.addEventListener('storage', e => { if (e.key === KEY) { state = load(); render(); } });
+const cur = () => state.students.find(s => s.id === state.cur) || state.students[0];
+function snapshot(label){
+  const s = cur(); if (!s) return;
+  state.undo.push({ label, id:s.id, data:JSON.stringify(s) });
+  if (state.undo.length > 30) state.undo.shift();
+}
+
+/* ---------- 소리 (WebAudio) ---------- */
+let ac;
+function tone({type='sine', f1=440, f2=f1, dur=.2, vol=.18, delay=0}){
+  if (!state.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(Math.max(f2,30), t+dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.02);
+  } catch {}
+}
+function noise(dur=.5, vol=.3, delay=0){
+  if (!state.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const n = ac.sampleRate*dur, b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i=0;i<n;i++) d[i] = (Math.random()*2-1) * (1-i/n)**2;
+    const src = ac.createBufferSource(), g = ac.createGain(), f = ac.createBiquadFilter();
+    f.type='lowpass'; f.frequency.value = 900; src.buffer = b; g.gain.value = vol;
+    src.connect(f).connect(g).connect(ac.destination); src.start(ac.currentTime+delay);
+  } catch {}
+}
+const SFX = {
+  fuel(){ tone({type:'sawtooth',f1:90,f2:240,dur:.35,vol:.12}); tone({type:'square',f1:660,f2:990,dur:.12,vol:.06,delay:.3}); },
+  vroom(){ tone({type:'sawtooth',f1:70,f2:180,dur:.5,vol:.14}); tone({type:'sawtooth',f1:120,f2:420,dur:.9,vol:.14,delay:.45}); },
+  zap(){ tone({type:'square',f1:900,f2:120,dur:.22,vol:.1}); noise(.15,.15); },
+  heal(){ tone({f1:400,f2:800,dur:.25}); tone({f1:600,f2:1200,dur:.25,delay:.12}); },
+  boom(){ noise(.9,.45); tone({type:'sine',f1:140,f2:40,dur:.7,vol:.3}); },
+  fanfare(){ [523,659,784,1047].forEach((f,i)=>tone({type:'triangle',f1:f,dur:.22,vol:.16,delay:.5+i*.13})); },
+  nope(){ tone({type:'triangle',f1:300,f2:200,dur:.18,vol:.1}); },
+};
+
+/* ---------- 효과 ---------- */
+function toast(msg){ document.querySelectorAll('.toast').forEach(t=>t.remove()); const t = document.createElement('div'); t.className='toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2400); }
+function sparks(el, colors){
+  const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+  for (let i=0;i<16;i++){
+    const s = document.createElement('div'); s.className='spark';
+    const a = Math.random()*Math.PI*2, d = 40 + Math.random()*70;
+    s.style.left = cx+'px'; s.style.top = cy+'px'; s.style.background = colors[i%colors.length];
+    s.style.setProperty('--dx', Math.cos(a)*d+'px'); s.style.setProperty('--dy', Math.sin(a)*d+'px');
+    document.body.appendChild(s); setTimeout(()=>s.remove(), 1000);
+  }
+}
+function confetti(){
+  const cs = ['#e8323c','#ffc928','#2b6cf0','#2fbf71','#7a3fd6','#ff8a1f'];
+  for (let i=0;i<70;i++){
+    const c = document.createElement('div'); c.className='confetti';
+    c.style.left = Math.random()*100+'vw'; c.style.background = cs[i%cs.length];
+    c.style.animationDuration = 1.6 + Math.random()*1.6 + 's'; c.style.animationDelay = Math.random()*.5+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(), 4000);
+  }
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isTeacher = () => location.hash === '#teacher';
+let unlocked = false;
+
+/* ---------- 화면 ---------- */
+const app = document.getElementById('app');
+function render(){
+  document.body.classList.toggle('teacher', isTeacher());
+  if (isTeacher() && state.pin && !unlocked) return askPin();
+  const s = cur();
+  const T = isTeacher();
+  let h = `<header>
+    <div class="logo">${FLAG.replace('class="flag"','')}<div><h1>카 몬스터 <em>레이스</em></h1><p>미션 성공하면 연료 충전, 실수를 찾으면 몬스터 공격!</p></div></div>
+    ${s ? `<div class="head-right"><div class="pill">⭐ 받을 스티커 <b>${s.owed}</b></div><div class="pill">🏆 모은 스티커 <b>${s.stickers}</b></div></div>` : ''}
+  </header>`;
+  if (T) h += `<div class="t-bar"><b>🔧 선생님 화면</b>
+      <button class="btn" data-act="addStudent">＋ 학생</button>
+      ${s ? `<button class="btn" data-act="editStudent">학생 수정</button>
+      <button class="btn" data-act="gave">스티커 줬어요 ✓</button>
+      <button class="btn" data-act="undo">↩ 되돌리기${state.undo.length?` (${state.undo.length})`:''}</button>
+      <button class="btn" data-act="resetBoard">판 새로 시작</button>` : ''}
+      <button class="btn" data-act="daily">하루 한 칸 규칙: ${state.daily?'켬':'끔'}</button>
+      <button class="btn" data-act="sound">소리: ${state.sound?'켬':'끔'}</button>
+      <button class="btn" data-act="backup">백업</button>
+      <button class="btn" data-act="restore">불러오기</button>
+      <button class="btn" data-act="pin">비밀번호</button>
+      <button class="btn primary" data-act="exit">학생 화면으로</button></div>
+    <p class="t-hint">선생님 화면에서는 연료 칸·하트를 눌러 숫자를 바로 고칠 수 있어요. 미션·몬스터 설명은 "고치기"로 바꿔요.</p>`;
+  if (!s){
+    h += `<div class="board setup">${CARS[1].svg()}<h2>첫 레이서를 등록해 주세요</h2>
+      <p class="muted">이름을 넣고 좋아하는 자동차를 고르면 시작해요.</p>
+      <button class="big" data-act="addStudent">레이서 등록하기</button></div>`;
+    app.innerHTML = h; return;
+  }
+  h += `<div class="tabs">${state.students.map(st=>`<button class="tab ${st.id===s.id?'on':''}" data-tab="${st.id}">${CARS[st.car].svg()}${esc(st.name)}</button>`).join('')}
+    ${T ? `<button class="tab add" data-act="addStudent">＋ 추가</button>` : ''}</div>`;
+
+  const t = today();
+  const V = state.view === 'mon' ? 'mon' : 'car';
+  h += `<div class="modes">
+    <button class="mode car ${V==='car'?'on':''}" data-view="car">${CARS[s.car].svg()}<span>자동차 레이스</span></button>
+    <button class="mode mon ${V==='mon'?'on':''}" data-view="mon">${MONS[2].svg()}<span>몬스터 배틀</span></button></div>`;
+  if (V === 'car'){
+  h += `<section class="board fuel-board">
+    <div class="board-head">${FLAG}<h2>FUEL UP FOR <em>SUCCESS!</em></h2>${FLAG}</div><div class="rows">`;
+  state.missions.forEach((m,i)=>{
+    const c = s.cars[i], done = state.daily && c.last === t && !T;
+    h += `<div class="row" data-row="car${i}">
+      <div class="pic" id="car${i}">${CARS[i].svg()}</div>
+      <div class="info">
+        <div class="top"><span class="tag"><span>${esc(m.name)}</span></span><span class="nick">${CARS[i].nick}</span>${T?`<button class="edit-txt" data-edit="mission" data-i="${i}">고치기</button>`:''}</div>
+        <div class="desc">${esc(m.desc)}</div>
+        <div class="bottom"><div class="fuel"><span class="lbl">FUEL</span>${[0,1,2,3].map(k=>`<button class="cell ${k<c.fuel?'on':''}" data-cell="${i}" data-k="${k}" aria-label="연료 ${k+1}칸"><i></i></button>`).join('')}</div>
+          <button class="go" data-fuel="${i}" ${done?'disabled':''}>${done?'내일 또 달려요!':'⛽ 미션 성공!'}</button></div>
+      </div>${c.laps?`<span class="count">완주 ${c.laps}번</span>`:''}</div>`;
+  });
+  h += `</div><div class="rules"><ol><li>미션에 성공하면 연료 한 칸 충전!</li><li>${state.daily?'하루에 자동차 한 대당 한 칸씩만!':'연료가 가득 차면 출발!'}</li></ol>
+    <div class="prize"><small>연료 네 칸을 채우면</small><b>스티커 1개!</b></div></div></section>`;
+  } else {
+
+  h += `<section class="board mon"><div class="board-head"><h2>DEFEAT THE MISTAKE <em>MONSTERS!</em></h2></div><div class="rows">`;
+  state.monsters.forEach((m,i)=>{
+    const c = s.mons[i], done = state.daily && c.last === t && !T;
+    h += `<div class="row mon-row">
+      <div class="pic" id="mon${i}">${MONS[i].svg()}</div>
+      <div class="info">
+        <div class="top"><span class="tag"><span>${esc(m.name)} Monster</span></span><span class="nick">${MONS[i].nick}</span>${T?`<button class="edit-txt" data-edit="monster" data-i="${i}">고치기</button>`:''}</div>
+        <div class="desc">${esc(m.desc)}</div>
+        <div class="bottom"><div class="hearts"><span class="lbl">HP</span>${[0,1,2,3].map(k=>`<button class="heart ${k>=c.hp?'gone':''}" data-heart="${i}" data-k="${k}" aria-label="체력 ${k+1}">${HEART}</button>`).join('')}</div>
+          <button class="heal-btn" data-heal="${i}" ${c.hp>=HP_MAX?'disabled style="opacity:.4"':''}>놓친 실수 → 회복</button>
+          <button class="go" data-hit="${i}" ${done?'disabled':''}>${done?'내일 또 공격!':'⚔️ 찾았다!'}</button></div>
+      </div>${c.kills?`<span class="count">격파 ${c.kills}번</span>`:''}</div>`;
+  });
+  h += `</div><div class="rules"><ol><li>확인에 성공한 몬스터의 HP 하나 지우기</li><li>놓친 실수가 있으면 몬스터 HP 회복!</li>${state.daily?'<li>HP는 하루에 한 몬스터당 한 개씩만</li>':''}</ol>
+    <div class="prize"><small>HP 4개를 모두 지우면</small><b>스티커 3개!</b></div></div></section>`;
+  }
+
+  h += `<section class="board shelf"><h2>${V==='car'?'🏁 우리 차고 (완주한 횟수)':'👾 몬스터 도감 (격파한 횟수)'}</h2><div class="shelf-grid">
+    ${V==='car' ? CARS.map((c,i)=>`<div class="trophy ${s.cars[i].laps?'':'none'}">${c.svg()}<div class="n">${c.nick} <b>${s.cars[i].laps}</b></div></div>`).join('')
+      : MONS.map((m,i)=>`<div class="trophy mon ${s.mons[i].kills?'':'none'}">${m.svg()}<div class="n">${m.nick} <b>${s.mons[i].kills}</b></div></div>`).join('')}
+  </div></section>`;
+  if (!T) h += `<div class="foot"><button class="t-door" data-act="teacher">선생님</button></div>`;
+  app.innerHTML = h;
+}
+
+/* ---------- 놀이 ---------- */
+function anim(el, cls, ms){ if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); if (ms) setTimeout(()=>el.classList.remove(cls), ms); }
+function addFuel(i){
+  const s = cur(), c = s.cars[i], t = today();
+  if (state.daily && c.last === t){ SFX.nope(); toast('이 자동차는 오늘 충전했어요. 내일 또 달려요!'); return; }
+  snapshot('연료');
+  c.fuel = Math.min(FUEL_MAX, c.fuel+1); c.last = t;
+  if (c.fuel >= FUEL_MAX){
+    c.fuel = 0; c.laps++; s.stickers += 1; s.owed += 1; save();
+    // 가득 찬 모습 먼저 보여 주고 출발
+    const row = document.querySelector(`[data-row="car${i}"]`);
+    row.querySelectorAll('.cell').forEach(x=>x.classList.add('on'));
+    SFX.vroom(); anim(document.querySelector(`#car${i} svg`), 'drive');
+    setTimeout(()=>{ render(); anim(document.querySelector(`#car${i} svg`), 'arrive', 800); celebrateCar(i); }, 1250);
+    return;
+  }
+  save(); SFX.fuel(); render();
+  const cell = document.querySelector(`[data-cell="${i}"][data-k="${c.fuel-1}"]`);
+  anim(cell, 'pop', 600); sparks(cell, ['#ffc928','#ff8a1f','#fff']); anim(document.querySelector(`#car${i} svg`), 'rev', 800);
+  toast(['부릉부릉! 연료 충전!','좋아요! 한 칸 더!','엔진이 뜨거워진다!'][c.fuel%3]);
+}
+function hitMon(i){
+  const s = cur(), m = s.mons[i], t = today();
+  if (state.daily && m.last === t){ SFX.nope(); toast('이 몬스터는 오늘 공격했어요. 내일 또!'); return; }
+  snapshot('공격');
+  m.hp = Math.max(0, m.hp-1); m.last = t;
+  const heart = document.querySelector(`[data-heart="${i}"][data-k="${m.hp}"]`);
+  sparks(heart, ['#ff4d6d','#ffc928','#fff']);
+  if (m.hp <= 0){
+    m.hp = HP_MAX; m.kills++; s.stickers += 3; s.owed += 3; save();
+    SFX.zap(); setTimeout(()=>SFX.boom(), 200);
+    anim(heart, 'hit'); heart.classList.add('gone');
+    const art = document.querySelector(`#mon${i} svg`); anim(art, 'boom');
+    setTimeout(()=>{ render(); anim(document.querySelector(`#mon${i} svg`), 'respawn', 800); celebrateMon(i); }, 900);
+    return;
+  }
+  save(); SFX.zap(); render();
+  anim(document.querySelector(`[data-heart="${i}"][data-k="${m.hp}"]`), 'hit', 600);
+  const art = document.querySelector(`#mon${i} svg`); anim(art, 'shake', 600); anim(art.parentElement, 'flash', 600);
+  toast(['퍽! 몬스터가 휘청!','실수 발견! 공격 성공!','몬스터 체력이 줄었어요!'][m.hp%3]);
+}
+function healMon(i){
+  const s = cur(), m = s.mons[i];
+  if (m.hp >= HP_MAX) return;
+  snapshot('회복');
+  m.hp++; save(); SFX.heal(); render();
+  anim(document.querySelector(`[data-heart="${i}"][data-k="${m.hp-1}"]`), 'heal', 700);
+  toast('몬스터가 HP를 되찾았어요. 다음엔 꼭 찾자!');
+}
+function celebrateCar(i){
+  SFX.fanfare(); confetti();
+  modal(`<div class="celebrate"><h3>연료 가득! 완주!</h3>
+    <div class="stage"><div class="zoom">${CARS[i].svg()}</div></div>
+    <div class="stickers">⭐</div><p><b>${esc(state.missions[i].name)}</b> 자동차가 결승선을 통과했어요!<br>스티커 1개 획득!</p>
+    <div class="m-actions" style="justify-content:center"><button class="btn primary" data-close>또 달리자!</button></div></div>`);
+}
+function celebrateMon(i){
+  SFX.fanfare(); confetti();
+  modal(`<div class="celebrate"><h3>몬스터 격파!</h3>
+    <div class="stage"><div class="dance" style="display:inline-block">${MONS[i].svg().replace('<svg','<svg style="width:130px;height:130px"')}</div></div>
+    <div class="stickers">⭐⭐⭐</div><p><b>${esc(state.monsters[i].name)} Monster</b>를 물리쳤어요!<br>스티커 3개 획득!</p>
+    <div class="m-actions" style="justify-content:center"><button class="btn primary" data-close>다음 몬스터 덤벼라!</button></div></div>`);
+}
+
+/* ---------- 모달 ---------- */
+function modal(html, onReady){
+  closeModal();
+  const bg = document.createElement('div'); bg.className='modal-bg'; bg.innerHTML = `<div class="modal">${html}</div>`;
+  bg.addEventListener('click', e => { if (e.target === bg || e.target.closest('[data-close]')) closeModal(); });
+  document.body.appendChild(bg); onReady && onReady(bg);
+  return bg;
+}
+function closeModal(){ document.querySelectorAll('.modal-bg').forEach(m=>m.remove()); }
+
+function studentForm(st){
+  let pick = st ? st.car : 1;
+  const bg = modal(`<h3>${st?'레이서 수정':'새 레이서'}</h3>
+    <div class="field">이름<input id="f-name" maxlength="12" value="${st?esc(st.name):''}" placeholder="예: 민준"></div>
+    <div class="field">내 자동차<div class="pick">${CARS.map((c,i)=>`<button data-pick="${i}" class="${i===pick?'on':''}" title="${c.nick}">${c.svg()}</button>`).join('')}</div></div>
+    <div class="m-actions">${st?'<button class="btn danger" data-del>이 학생 지우기</button>':'<span></span>'}
+      <div style="display:flex;gap:8px"><button class="btn" data-close>취소</button><button class="btn primary" data-ok>저장</button></div></div>`);
+  bg.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{ pick=+b.dataset.pick; bg.querySelectorAll('[data-pick]').forEach(x=>x.classList.toggle('on', x===b)); });
+  bg.querySelector('[data-ok]').onclick = () => {
+    const name = bg.querySelector('#f-name').value.trim();
+    if (!name) { bg.querySelector('#f-name').focus(); return; }
+    if (st){ st.name = name; st.car = pick; }
+    else { const n = freshStudent(name, pick); state.students.push(n); state.cur = n.id; }
+    save(); closeModal(); render();
+  };
+  const del = bg.querySelector('[data-del]');
+  if (del) del.onclick = () => {
+    if (!confirm(`${st.name} 학생의 기록을 모두 지울까요? 되돌릴 수 없어요.`)) return;
+    state.students = state.students.filter(x=>x.id!==st.id); state.undo = state.undo.filter(u=>u.id!==st.id);
+    state.cur = state.students[0]?.id || null; save(); closeModal(); render();
+  };
+  setTimeout(()=>bg.querySelector('#f-name').focus(), 50);
+}
+function editText(kind, i){
+  const list = kind==='mission' ? state.missions : state.monsters;
+  const bg = modal(`<h3>${kind==='mission'?'미션':'몬스터'} 고치기</h3>
+    <div class="field">이름 (영어)<input id="e-name" maxlength="20" value="${esc(list[i].name)}"></div>
+    <div class="field">설명<input id="e-desc" maxlength="40" value="${esc(list[i].desc)}"></div>
+    <div class="m-actions"><button class="btn danger" data-reset>처음 문구로</button><div style="display:flex;gap:8px"><button class="btn" data-close>취소</button><button class="btn primary" data-ok>저장</button></div></div>`);
+  bg.querySelector('[data-ok]').onclick = () => { list[i].name = bg.querySelector('#e-name').value.trim() || list[i].name; list[i].desc = bg.querySelector('#e-desc').value.trim(); save(); closeModal(); render(); };
+  bg.querySelector('[data-reset]').onclick = () => { const d = (kind==='mission'?DEFAULT_MISSIONS:DEFAULT_MONSTERS)[i]; list[i] = {...d}; save(); closeModal(); render(); };
+}
+function askPin(){
+  app.innerHTML = '';
+  const bg = modal(`<h3>선생님 비밀번호</h3><div class="field"><input id="p-in" type="password" inputmode="numeric" maxlength="8" placeholder="숫자"></div>
+    <div class="m-actions"><button class="btn" data-back>학생 화면</button><button class="btn primary" data-ok>열기</button></div>`);
+  const go = () => { if (bg.querySelector('#p-in').value === state.pin){ unlocked = true; closeModal(); render(); } else { SFX.nope(); bg.querySelector('#p-in').value=''; toast('비밀번호가 달라요'); } };
+  bg.querySelector('[data-ok]').onclick = go;
+  bg.querySelector('#p-in').onkeydown = e => { if (e.key==='Enter') go(); };
+  bg.querySelector('[data-back]').onclick = () => { closeModal(); location.hash=''; };
+  bg.onclick = null;
+  setTimeout(()=>bg.querySelector('#p-in').focus(), 50);
+}
+function setPin(){
+  const bg = modal(`<h3>선생님 비밀번호</h3><p class="muted" style="margin-top:0">숫자 4~8자리. 비워 두고 저장하면 비밀번호 없이 열려요.</p>
+    <div class="field"><input id="p-new" type="password" inputmode="numeric" maxlength="8" placeholder="새 비밀번호"></div>
+    <div class="m-actions"><span></span><div style="display:flex;gap:8px"><button class="btn" data-close>취소</button><button class="btn primary" data-ok>저장</button></div></div>`);
+  bg.querySelector('[data-ok]').onclick = () => {
+    const v = bg.querySelector('#p-new').value.trim();
+    if (v && !/^\d{4,8}$/.test(v)) { toast('숫자 4~8자리로 넣어 주세요'); return; }
+    state.pin = v; save(); closeModal(); toast(v ? '비밀번호를 정했어요' : '비밀번호를 없앴어요');
+  };
+}
+
+/* ---------- 이벤트 ---------- */
+app.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const T = isTeacher(), s = cur(), d = b.dataset;
+  if (d.tab){ state.cur = d.tab; save(); render(); return; }
+  if (d.view){ if (state.view !== d.view){ state.view = d.view; save(); d.view === 'car' ? SFX.fuel() : SFX.zap(); render(); } return; }
+  if (d.fuel !== undefined && !b.disabled) return addFuel(+d.fuel);
+  if (d.hit !== undefined && !b.disabled) return hitMon(+d.hit);
+  if (d.heal !== undefined) return healMon(+d.heal);
+  if (d.edit) return editText(d.edit, +d.i);
+  if (T && d.cell !== undefined){ snapshot('연료 고침'); const c = s.cars[+d.cell], k = +d.k; c.fuel = c.fuel === k+1 ? k : k+1; save(); render(); return; }
+  if (T && d.heart !== undefined){ snapshot('HP 고침'); const m = s.mons[+d.heart], k = +d.k; m.hp = m.hp === k+1 ? k : k+1; save(); render(); return; }
+  switch (d.act){
+    case 'teacher': location.hash = 'teacher'; break;
+    case 'exit': unlocked = false; location.hash = ''; break;
+    case 'addStudent': studentForm(null); break;
+    case 'editStudent': studentForm(s); break;
+    case 'gave': if (s.owed){ snapshot('스티커'); s.owed = 0; save(); render(); toast('스티커 준 것으로 표시했어요'); } else toast('받을 스티커가 없어요'); break;
+    case 'undo': {
+      const u = state.undo.pop(); if (!u){ toast('되돌릴 것이 없어요'); break; }
+      const idx = state.students.findIndex(x=>x.id===u.id);
+      if (idx >= 0){ state.students[idx] = JSON.parse(u.data); state.cur = u.id; }
+      save(); render(); toast(`"${u.label}" 하나 되돌렸어요`); break; }
+    case 'resetBoard':
+      if (!confirm(`${s.name} 학생의 연료와 몬스터 HP를 처음으로 돌릴까요? (모은 스티커와 완주·격파 기록은 그대로)`)) break;
+      snapshot('판 새로'); s.cars.forEach(c=>{c.fuel=0;c.last='';}); s.mons.forEach(m=>{m.hp=HP_MAX;m.last='';}); save(); render(); break;
+    case 'daily': state.daily = !state.daily; save(); render(); break;
+    case 'sound': state.sound = !state.sound; save(); render(); break;
+    case 'pin': setPin(); break;
+    case 'backup': {
+      const data = JSON.stringify({...state, undo:[]}, null, 1);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+      a.download = `car-monster-backup-${today()}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000); break; }
+    case 'restore': {
+      const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
+      inp.onchange = async () => {
+        try { const s2 = JSON.parse(await inp.files[0].text()); if (!Array.isArray(s2.students)) throw 0;
+          if (!confirm('지금 기록을 백업 파일 내용으로 바꿀까요?')) return;
+          localStorage.setItem(KEY, JSON.stringify(s2)); state = load(); render(); toast('불러왔어요');
+        } catch { toast('이 파일은 불러올 수 없어요'); }
+      };
+      inp.click(); break; }
+  }
+});
+window.addEventListener('hashchange', () => { closeModal(); render(); });
+render();
+</script>
+</body>
+</html>
