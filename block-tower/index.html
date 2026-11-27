@@ -72,7 +72,20 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
 .panel{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:18px}
 .tower-panel{display:grid;gap:8px;justify-items:center;text-align:center}
 .tower-panel h2{font-family:var(--display);font-weight:400;margin:0;font-size:24px}
-#tower{width:100%;max-width:300px;height:auto;overflow:visible}
+#tower{width:100%;max-width:300px;height:auto;max-height:72vh;overflow:visible}
+.floors{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:18px;background:var(--blue-soft);padding:4px 6px 4px 14px;border-radius:12px}
+.floors span{color:var(--soft);font-size:16px}
+.floors button{width:36px;height:36px;border-radius:9px;background:var(--card);font-size:20px;line-height:1;border:2px solid var(--line)}
+.floors button:disabled{opacity:.35;cursor:default}
+.floors output{min-width:44px;text-align:center;color:var(--blue-dark)}
+.shake{animation:shake .35s linear 1}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-1deg)}40%{transform:translateX(6px) rotate(1deg)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:15}
+.finale h2{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
+.sticker{animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
+.sticker:nth-child(2){animation-delay:.12s}.sticker:nth-child(3){animation-delay:.24s}
+.btn.crash{background:#FF5A5F;box-shadow:0 5px 0 #C93B40;font-size:28px;padding:14px 30px}
+.btn.crash:active{box-shadow:0 1px 0 #C93B40}
 .drop{animation:drop .55s cubic-bezier(.3,1.5,.55,1) both;transform-box:fill-box}
 @keyframes drop{from{transform:translateY(-260px)}to{transform:none}}
 .flash{animation:flash .9s ease-out 1}
@@ -209,10 +222,11 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
   <main>
     <section class="panel tower-panel" aria-label="오늘 쌓는 타워">
       <h2 id="towerTitle">오늘의 타워</h2>
+      <div class="floors" id="floors"></div>
       <svg id="tower" viewBox="0 0 320 520" role="img" aria-label="미션마다 블록이 쌓이는 타워"></svg>
       <p class="say" id="say"></p>
       <div class="track" id="track"></div>
-      <p class="sticker-rule">6층 완성: 스티커 2개 · 블록 18개 전부 모으기: 추가 1개</p>
+      <p class="sticker-rule" id="srule"></p>
     </section>
     <section class="panel" id="stage" aria-live="polite"></section>
   </main>
@@ -238,18 +252,20 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
   ];
   const GRAY={c:'#C9D1E0',d:'#97A3BB'};
   const BUDDIES=[{k:'red',c:'#FF5A5F',d:'#C93B40'},{k:'green',c:'#3DCB7A',d:'#259A57'},{k:'orange',c:'#FF9A3C',d:'#CF7316'},{k:'pink',c:'#FF7AC2',d:'#D24F98'}];
-  const EXAMPLES=['단어 카드 10개 읽기','리딩 지문 1쪽 읽기','워크시트 1장 풀기','단어 스펠링 5개 쓰기','책 2쪽 소리 내어 읽기','영어 문장 3개 쓰기'];
-  const FLOORS=EXAMPLES.length, LAST=FLOORS-1;
+  const EXAMPLES=['단어 카드 10개 읽기','리딩 지문 1쪽 읽기','워크시트 1장 풀기','단어 스펠링 5개 쓰기','책 2쪽 소리 내어 읽기','영어 문장 3개 쓰기','문법 문제 5개 풀기','오늘 배운 단어 복습'];
+  const MINF=2, MAXF=10;           // 하루에 쌓을 수 있는 층 수 범위
   const KEY='block-tower-v2';
+  const N=()=>S.rounds.length, LI=()=>S.rounds.length-1;
 
-  function fresh(buddy){
-    return {cur:0,finished:false,plan:null,used:[],buddy:buddy||'red',
-      rounds:EXAMPLES.map(m=>({mission:m,minutes:10,ok:{seat:false,quiet:false,time:false},retry:false,result:null,again:false})),
+  function newRound(i){return {mission:EXAMPLES[i%EXAMPLES.length],minutes:10,ok:{seat:false,quiet:false,time:false},retry:false,result:null,again:false}}
+  function fresh(buddy,n){
+    return {cur:0,finished:false,crashed:false,plan:null,used:[],buddy:buddy||'red',
+      rounds:Array.from({length:n||6},(_,i)=>newRound(i)),
       timer:{total:600000,left:600000,running:false,endAt:0}};
   }
   let S;
   try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
-  if(!S||!S.rounds||S.rounds.length!==FLOORS) S=fresh();
+  if(!S||!Array.isArray(S.rounds)||S.rounds.length<MINF||S.rounds.length>MAXF) S=fresh();
   S.timer.running=false;
   function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
@@ -272,9 +288,10 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
   function unwake(){try{lock&&lock.release();lock=null}catch(e){}}
 
   /* 타워 그리기 (위쪽에 지붕과 꼭대기 친구 자리를 둠) */
-  const FY=i=>430-60*i;           // 층 i의 윗면 y
+  const BASE=()=>60*N()+57;        // 맨 아래층 윗면 y (층 수에 맞춰 그림 높이가 바뀜)
+  const FY=i=>BASE()-60*i;         // 층 i의 윗면 y
   function brick(x,y,col,cls){
-    return `<g class="${cls||''}"><rect x="${x+10}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+    return `<g class="bk ${cls||''}"><rect x="${x+10}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x+46}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x}" y="${y}" width="76" height="54" rx="8" fill="${col.c}" stroke="#1E2A4A" stroke-width="3"/>
       <rect x="${x+5}" y="${y+40}" width="66" height="9" rx="4" fill="${col.d}" opacity=".55"/>
@@ -285,14 +302,20 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
   }
   function buddy(x,y,cls){
     const b=BUDDIES.find(v=>v.k===S.buddy)||BUDDIES[0];
-    return `<g class="${cls||''}"><rect x="${x+12}" y="${y-7}" width="16" height="9" rx="3" fill="${b.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+    return `<g class="bk ${cls||''}"><rect x="${x+12}" y="${y-7}" width="16" height="9" rx="3" fill="${b.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x}" y="${y}" width="40" height="38" rx="8" fill="${b.c}" stroke="#1E2A4A" stroke-width="3"/>
       <rect x="${x+4}" y="${y+28}" width="32" height="6" rx="3" fill="${b.d}" opacity=".5"/>
       <circle cx="${x+13}" cy="${y+15}" r="3.4" fill="#1E2A4A"/><circle cx="${x+27}" cy="${y+15}" r="3.4" fill="#1E2A4A"/>
       <path d="M${x+13} ${y+22}q7 6 14 0" fill="none" stroke="#1E2A4A" stroke-width="2.5" stroke-linecap="round"/></g>`;
   }
   function renderTower(){
+    $('tower').setAttribute('viewBox',`0 0 320 ${BASE()+92}`);
     let s=`<rect x="10" y="${FY(-1)+4}" width="300" height="22" rx="8" fill="#9BB5F0"/><rect x="10" y="${FY(-1)+4}" width="300" height="8" rx="4" fill="#3DCB7A"/>`;
+    if(S.crashed){ // 무너뜨린 뒤 다시 열었을 때: 땅과 친구만
+      $('tower').innerHTML=s+buddy(140,FY(-1)+4-38,'');
+      $('towerTitle').textContent='와장창!';$('say').textContent='다음에 또 쌓자!';$('track').innerHTML='';
+      return;
+    }
     let top=-1;
     S.rounds.forEach((r,i)=>{
       const y=FY(i);
@@ -309,47 +332,61 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
       s+='</g>';
       if(r.result) top=i;
     });
-    if(S.finished&&top===LAST){
-      s+=`<path d="M14 ${FY(LAST)-8}L137 ${FY(LAST)-62}L260 ${FY(LAST)-8}z" fill="#FF5A5F" stroke="#1E2A4A" stroke-width="3" stroke-linejoin="round"/>`;
-      s+=buddy(117,FY(LAST)-62-44,'hop');
+    if(S.finished&&top===LI()){
+      s+=`<g class="bk"><path d="M14 ${FY(LI())-8}L137 ${FY(LI())-62}L260 ${FY(LI())-8}z" fill="#FF5A5F" stroke="#1E2A4A" stroke-width="3" stroke-linejoin="round"/></g>`;
+      s+=buddy(117,FY(LI())-62-44,'hop');
     } else if(top>=0){
       s+=`<rect x="256" y="${FY(top)+54}" width="58" height="9" rx="4" fill="#9BB5F0" stroke="#1E2A4A" stroke-width="2.5"/>`;
       s+=buddy(266,FY(top)+16,anim.pass!=null?'hop':'');
     } else s+=buddy(266,FY(-1)+4-38,'');
     $('tower').innerHTML=s;
     const passed=S.rounds.filter(r=>r.result==='pass').length;
-    $('towerTitle').textContent=S.finished&&passed===FLOORS?'타워 완성!':passed?`${passed}층 완성`:'오늘의 타워';
+    $('towerTitle').textContent=S.finished&&passed===N()?'타워 완성!':passed?`${passed}층 완성`:'오늘의 타워';
     const r=S.rounds[S.cur],n=MODES.filter(m=>r.ok[m.k]).length;
-    $('say').textContent=S.finished?(passed===FLOORS?'꼭대기 도착! 고마워!':'오늘도 같이 쌓아서 좋았어!')
+    $('say').textContent=S.finished?(passed===N()?'꼭대기 도착! 고마워!':'오늘도 같이 쌓아서 좋았어!')
       :r.result==='pass'?'한 층 올라왔다!':S.timer.running?'지금은 미션만 보기!':n===1?'블록 하나 더 모으면 층 완성!':n>=2?'층 완성 준비 끝!':'같이 블록 모으자!';
     $('track').innerHTML=S.rounds.map((x,i)=>{
       const c=x.result==='pass'?'pass':x.result==='fail'?'fail':(i===S.cur&&!S.finished?'now':'');
       return `<span class="chip ${c}">${i+1}층${x.result==='pass'?' 완성':x.result==='fail'?' 쉬어 감':''}</span>`}).join('');
   }
 
+  /* 오늘 쌓을 층 수: 지금 층보다 적게는 못 줄인다 */
+  function renderFloors(){
+    const lo=Math.max(MINF,S.cur+1),lock=S.finished;
+    $('floors').innerHTML=`<span>오늘 쌓을 층</span><button data-act="fless" ${lock||N()<=lo?'disabled':''} aria-label="한 층 줄이기">−</button><output>${N()}층</output><button data-act="fmore" ${lock||N()>=MAXF?'disabled':''} aria-label="한 층 늘리기">+</button>`;
+    $('srule').textContent=`${N()}층 완성: 스티커 2개 · 블록 ${N()*3}개 전부 모으기: 추가 1개`;
+  }
+
   function renderStage(){
     const st=$('stage');
     if(S.finished){
       const passed=S.rounds.filter(r=>r.result==='pass').length;
-      const all=passed===FLOORS&&S.rounds.every(r=>MODES.every(m=>r.ok[m.k]));
-      const n=(passed===FLOORS?2:0)+(all?1:0);
-      st.innerHTML=`<div class="finale"><h2>${passed===FLOORS?'타워 완성!':`오늘은 ${passed}층까지 쌓았어요`}</h2>
+      const all=passed===N()&&S.rounds.every(r=>MODES.every(m=>r.ok[m.k]));
+      const n=(passed===N()?2:0)+(all?1:0);
+      if(S.crashed){
+        st.innerHTML=`<div class="finale"><h2>와장창!</h2><p>다 무너졌다! 다음 수업에서 또 쌓자</p>
+          <button class="btn go big" data-act="newclass">새로 쌓기</button></div>`;
+        return;
+      }
+      st.innerHTML=`<div class="finale"><h2>${passed===N()?`${N()}층 타워 완성!`:`${N()}층 타워 완성! (${passed}층 성공)`}</h2>
         ${n?`<div class="stickers">${Array.from({length:n},(_,i)=>`<div class="sticker${i===2?' bonus':''}">${i===2?'보너스':'스티커'}</div>`).join('')}</div>`:''}
-        <p>${n?`오늘 받는 스티커: <b>${n}개</b>`:'다음 수업에서 꼭대기까지 올라가 보자!'}</p>
-        ${passed===FLOORS&&!all?'<p style="color:var(--soft);font-size:15px">블록 18개를 전부 모으면 보너스 스티커가 하나 더!</p>':''}
-        <button class="btn ghosty" data-act="newclass">새 수업 준비하기</button></div>`;
+        <p>${n?`오늘 받는 스티커: <b>${n}개</b>`:'다음 수업에서는 회색 블록 없이 쌓아 보자!'}</p>
+        ${passed===N()&&!all?`<p style="color:var(--soft);font-size:15px">블록 ${N()*3}개를 전부 모으면 보너스 스티커가 하나 더!</p>`:''}
+        <p style="font-family:var(--display);font-size:20px">다 쌓았으니… 이제 무너뜨려 볼까?</p>
+        <button class="btn crash" data-act="crash">와장창 무너뜨리기!</button>
+        <button class="btn ghosty" data-act="newclass">무너뜨리지 않고 새 수업 준비</button></div>`;
       return;
     }
     const r=S.rounds[S.cur],tm=S.timer,done=!!r.result;
     const count=MODES.filter(m=>r.ok[m.k]).length;
-    const nextLabel=S.cur<LAST?'다음 층으로':'오늘 결과 보기';
+    const nextLabel=S.cur<LI()?'다음 층으로':'오늘 결과 보기';
     let res='';
     if(r.result==='pass')res=`<div class="result pass"><p>${S.cur+1}층 완성! 친구가 올라갔어요</p><button class="btn go" data-act="next">${nextLabel}</button></div>`;
     else if(r.result==='fail')res=`<div class="result fail"><p>괜찮아! 회색 블록으로 받쳐 두자</p><button class="btn ghosty" data-act="next">${nextLabel}</button></div>`;
     else if(r.again)res=`<div class="result again"><p>블록이 하나 모자라! 한 번 더?</p><div class="btns"><button class="btn" data-act="retry">다시 도전!</button><button class="btn ghosty" data-act="skip">이번엔 넘어가기</button></div></div>`;
     const frac=tm.total?tm.left/tm.total:0,lit=Math.ceil(frac*10-1e-9);
     st.innerHTML=`<div class="round">
-      <div class="round-head"><h2>${S.cur+1}층 <small>/ ${FLOORS}층</small></h2>${r.retry?'<span class="retry-tag">다시 도전 중</span>':''}</div>
+      <div class="round-head"><h2>${S.cur+1}층 <small>/ ${N()}층</small></h2>${r.retry?'<span class="retry-tag">다시 도전 중</span>':''}</div>
       <div class="mission"><label for="mission">이번 층 미션 (선생님이 정해 주세요)</label>
         <input id="mission" value="${esc(r.mission)}" ${done?'disabled':''} autocomplete="off"></div>
       <div class="timer">
@@ -382,7 +419,75 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
     $('resetBox').innerHTML=ask?`<div class="reset-ask"><span>오늘 기록을 지울까요?</span><button class="yes" data-act="doreset">지우기</button><button data-act="noreset">아니요</button></div>`
       :`<button class="reset" data-act="askreset">새 수업 시작</button>`;
   }
-  function all(){renderTower();renderStage();renderCharge();renderBuddies();save();anim={drop:null,pass:null}}
+  function all(){renderTower();renderFloors();renderStage();renderCharge();renderBuddies();save();anim={drop:null,pass:null}}
+
+  const calm=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 축하: 작은 블록 색종이 */
+  function confetti(){
+    if(calm())return;
+    const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+    const ctx=c.getContext('2d'),W=c.width=innerWidth,H=c.height=innerHeight;
+    const cols=['#FFC93C','#A77BFF','#2EC4E6','#FF5A5F','#3DCB7A','#2F6BFF'];
+    const ps=Array.from({length:120},()=>({x:Math.random()*W,y:-20-Math.random()*H*.6,s:8+Math.random()*10,vy:2.5+Math.random()*3.5,vx:Math.random()*2-1,a:Math.random()*6,va:Math.random()*.2-.1,c:cols[Math.random()*cols.length|0]}));
+    const start=performance.now();let last=start;
+    setTimeout(()=>c.remove(),6000);
+    (function step(now){
+      now=now||performance.now();
+      const k=Math.min(12,Math.max(1,Math.round((now-last)/16.7)));last=now;
+      ctx.clearRect(0,0,W,H);
+      ps.forEach(p=>{p.x+=p.vx*k;p.y+=p.vy*k;p.a+=p.va*k;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.8);ctx.restore()});
+      if(now-start<4000&&c.isConnected)requestAnimationFrame(step);else c.remove();
+    })();
+  }
+
+  /* 와장창: 쿵 소리 + 블록이 튀어 나가 바닥에 굴러 떨어짐 */
+  function crashSound(){
+    if(!ac)return;
+    try{
+      const len=ac.sampleRate*.7|0,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+      for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
+      const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();
+      src.buffer=buf;f.type='lowpass';f.frequency.value=1400;g.gain.value=.4;
+      src.connect(f).connect(g).connect(ac.destination);src.start();
+    }catch(e){}
+    tone([196,147,110,82],'triangle',.13);
+  }
+  function crashTower(done){
+    const svg=$('tower'),panel=svg.closest('.panel');
+    panel.scrollIntoView({behavior:calm()?'auto':'smooth',block:'nearest'});
+    const ground=FY(-1)+4;
+    const parts=[...svg.querySelectorAll('.bk')].map(g=>{
+      g.classList.remove('drop','hop');
+      const b=g.getBBox(),cx=b.x+b.width/2,cy=b.y+b.height/2;
+      return {g,cx,cy,hh:b.height/2,x:0,y:0,a:0,
+        vx:(cx-160)/28+(Math.random()*6-3),vy:-(4+Math.random()*7),va:Math.random()*20-10,wait:Math.random()*10|0};
+    });
+    crashSound();
+    if(calm()){parts.forEach(p=>p.g.style.opacity=0);setTimeout(done,300);return}
+    panel.classList.add('shake');
+    setTimeout(()=>{
+      panel.classList.remove('shake');
+      // 시간 기준으로 움직여서 느린 기기에서도 2.6초 안에 끝난다
+      const start=performance.now();let last=start,ended=false;
+      const finish=()=>{if(!ended){ended=true;done()}};
+      setTimeout(finish,4000);
+      function phys(p){
+        if(p.wait>0){p.wait--;return}
+        p.vy+=.55;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+        const bottom=p.cy+p.y+p.hh*.8;
+        if(bottom>ground){p.y=ground-p.cy-p.hh*.8;p.vy=Math.abs(p.vy)>2?-p.vy*.38:0;p.vx*=.72;p.va*=.55}
+        const cx=p.cx+p.x;if(cx<12||cx>308){p.vx*=-.5;p.x=(cx<12?12:308)-p.cx}
+      }
+      (function step(now){
+        now=now||performance.now();
+        let k=Math.min(12,Math.max(1,Math.round((now-last)/16.7)));last=now;
+        while(k--)parts.forEach(phys);
+        parts.forEach(p=>p.g.setAttribute('transform',`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${p.a.toFixed(1)} ${p.cx} ${p.cy})`));
+        if(!ended&&now-start<2600)requestAnimationFrame(step);else finish();
+      })();
+    },350);
+  }
 
   /* 타이머 */
   let iv=null;
@@ -449,14 +554,20 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
       case 'retry':r.retry=true;r.again=false;r.ok={seat:false,quiet:false,time:false};tm.left=tm.total;break;
       case 'skip':r.result='fail';r.again=false;break;
       case 'next':
-        if(S.cur<LAST){S.cur++;setMinutes(S.rounds[S.cur].minutes)}
-        else{S.finished=true;if(S.rounds.every(x=>x.result==='pass'))tone([523,659,784,1047,784,1047,1319,1568],'square',.12)}
+        if(S.cur<LI()){S.cur++;setMinutes(S.rounds[S.cur].minutes)}
+        else{S.finished=true;tone([523,659,784,1047,784,1047,1319,1568],'square',.12);setTimeout(confetti,60)}
         break;
+      case 'fless':if(N()>Math.max(MINF,S.cur+1))S.rounds.pop();break;
+      case 'fmore':if(N()<MAXF)S.rounds.push(newRound(N()));break;
+      case 'crash':
+        b.disabled=true;
+        crashTower(()=>{S.crashed=true;save();renderStage();$('towerTitle').textContent='와장창!';$('say').textContent='다음에 또 쌓자!'});
+        return;
       case 'askreset':renderReset(true);return;
       case 'noreset':renderReset(false);return;
       case 'doreset':case 'newclass':{
         const keep=S.rounds.map(x=>({mission:x.mission,minutes:x.minutes}));
-        S=fresh(S.buddy);S.rounds.forEach((x,i)=>{x.mission=keep[i].mission;x.minutes=keep[i].minutes});setMinutes(S.rounds[0].minutes);
+        S=fresh(S.buddy,keep.length);S.rounds.forEach((x,i)=>{x.mission=keep[i].mission;x.minutes=keep[i].minutes});setMinutes(S.rounds[0].minutes);
         clearInterval(iv);renderReset(false);break;}
       case 'endbreak':clearInterval(biv);$('overlay').hidden=true;$('overlay').innerHTML='';unwake();return;
       default:return;
