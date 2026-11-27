@@ -1,0 +1,496 @@
+<!doctype html>
+<!--
+  조개 문장함 (LucyApps)
+  아이가 쓴 영어 문장 하나를 조개 하나에 담아 모으는 페이지. 조개를 누르면 열리면서 진주와 문장이 나온다.
+  - Astryx 0.7.15 (React 19, CDN, 빌드 없음). 테마 butter, 밝은 모드 고정
+  - 데이터: localStorage 'shell-sentences-v1' (기기마다 따로). 선생님 화면(#teacher)에서 백업·불러오기
+  - 점수·연속 기록·목표 숫자는 두지 않는다. 진주는 쓴 문장 수를 보여 줄 뿐이다
+-->
+<html lang="ko" data-astryx-theme="butter">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>조개 문장함</title>
+<meta name="theme-color" content="#bfe8f2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/core@0.7.15/src/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/core@0.7.15/dist/astryx.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@astryxdesign/theme-butter@0.7.15/dist/theme.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.2.0",
+    "react/jsx-runtime": "https://esm.sh/react@19.2.0/jsx-runtime",
+    "react-dom": "https://esm.sh/react-dom@19.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.2.0/client",
+    "htm": "https://esm.sh/htm@3.1.1",
+    "@astryxdesign/core": "https://esm.sh/@astryxdesign/core@0.7.15?external=react,react-dom",
+    "@astryxdesign/theme-butter/built": "https://esm.sh/@astryxdesign/theme-butter@0.7.15/built?external=react,react-dom"
+  }
+}
+</script>
+<style>
+html[data-astryx-theme]{--font-family-body:"Outfit","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+:root{
+  --sea1:#bfe8f2;--sea2:#8fd3e6;--sand1:#fbefcf;--sand2:#f3dca8;--ink:#2c3550;--soft:#6a7390;
+  --pink:#ff9fbb;--lav:#b9a3ff;--peach:#ffbd8f;--mint:#86dcb8;--butter:#ffd95e;--sky:#8cc9ff;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;font-family:var(--font-family-body);color:var(--ink);
+  background:linear-gradient(180deg,var(--sea1) 0%,var(--sea2) 46%,var(--sand1) 46.2%,var(--sand2) 100%) fixed}
+#root:empty::after{content:'조개를 불러오는 중…';display:block;padding:40px 16px;text-align:center;font-family:"Jua",sans-serif;font-size:22px;color:var(--ink)}
+.page{max-width:980px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:grid;gap:16px}
+.jua{font-family:"Jua",sans-serif;font-weight:400}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.title{display:flex;align-items:center;gap:10px}
+.title h1{font-family:"Jua",sans-serif;font-weight:400;font-size:clamp(28px,5vw,40px);margin:0;color:#21456b;letter-spacing:.5px}
+.title small{display:block;color:#3d5f80;font-family:"Gowun Dodum",sans-serif;font-size:14px}
+.kids{display:flex;flex-wrap:wrap;gap:8px}
+.kid{font-family:"Jua",sans-serif;font-size:18px;border:3px solid #fff;background:rgba(255,255,255,.55);color:var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer}
+.kid.on{background:#fff;border-color:#21456b}
+.kid:focus-visible{outline:3px solid #21456b;outline-offset:2px}
+.card{background:rgba(255,255,255,.82);backdrop-filter:blur(4px);border-radius:24px;border:3px solid #fff;box-shadow:0 8px 24px rgba(33,69,107,.12);padding:16px}
+.necklace{display:grid;gap:4px;justify-items:center;text-align:center}
+.necklace svg{width:100%;max-width:640px;height:auto;overflow:visible}
+.necklace p{margin:0;font-family:"Jua",sans-serif;font-size:20px;color:#21456b}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seabed{position:relative;border-radius:28px;padding:22px 16px 26px;min-height:320px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.55),transparent 60%),linear-gradient(180deg,#fff3d6,#f6e1b0);border:3px solid #fff;box-shadow:inset 0 -10px 30px rgba(196,150,70,.18)}
+.seabed .grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:14px 10px}
+.shell-btn{display:grid;justify-items:center;gap:2px;background:none;border:0;padding:6px 2px;cursor:pointer;border-radius:18px;color:var(--ink);font:inherit}
+.shell-btn svg{width:92px;height:92px;filter:drop-shadow(0 6px 4px rgba(150,110,40,.25));transition:transform .2s}
+.shell-btn:hover svg{transform:translateY(-4px) rotate(-3deg)}
+.shell-btn:active svg{transform:scale(.94)}
+.shell-btn:focus-visible{outline:3px solid #21456b}
+.shell-btn .d{font-size:13px;color:#8a6d36;font-family:"Gowun Dodum",sans-serif}
+.shell-btn.new svg{animation:pop 1s ease-out}
+@keyframes pop{0%{transform:scale(.2) translateY(-60px)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.weed{position:absolute;bottom:-6px;width:70px;opacity:.55;z-index:0;transform-origin:bottom center;animation:sway 5s ease-in-out infinite}
+@keyframes sway{50%{transform:rotate(4deg)}}
+.bubble{position:fixed;bottom:-30px;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:rgba(255,255,255,.25);animation:rise linear infinite;pointer-events:none;z-index:0}
+@keyframes rise{to{transform:translateY(-110vh) translateX(20px)}}
+.empty{display:grid;justify-items:center;text-align:center;gap:10px;padding:30px 10px}
+.empty h2{font-family:"Jua",sans-serif;font-weight:400;font-size:26px;margin:0}
+.empty p{margin:0;color:var(--soft)}
+.picker{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.picker button,.colors button{border:3px solid transparent;background:#fffaf0;border-radius:14px;padding:4px;cursor:pointer}
+.picker button.on,.colors button.on{border-color:#21456b;background:#fff}
+.picker svg{width:100%;height:54px}
+.colors{display:flex;gap:8px;flex-wrap:wrap}
+.colors button{width:44px;height:44px;border-radius:50%;padding:0}
+.colors button span{display:block;width:100%;height:100%;border-radius:50%}
+.lbl{font-weight:600;font-size:14px;margin:4px 0 6px}
+.open-shell{display:grid;justify-items:center}
+.open-shell svg{width:220px;height:180px;overflow:visible}
+.lid{transform-box:view-box;transform-origin:110px 108px;animation:lid 1s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes lid{from{transform:scaleY(-1) translateY(-4px)}to{transform:none}}
+.pearl{animation:glow 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes glow{50%{filter:drop-shadow(0 0 10px #fff6c8)}}
+.sentence{font-family:"Outfit",sans-serif;font-size:clamp(22px,4vw,30px);font-weight:600;text-align:center;line-height:1.35;margin:6px 0 0;color:#21456b;word-break:break-word}
+.ko{text-align:center;color:var(--soft);margin:2px 0 0;font-family:"Gowun Dodum",sans-serif}
+.note{background:#fff7d6;border-radius:16px;padding:10px 14px;font-family:"Gowun Dodum",sans-serif;position:relative;margin-top:6px}
+.note b{font-family:"Jua",sans-serif;font-weight:400;color:#b07a00;margin-right:6px}
+.month{display:grid;gap:10px}
+.month h3{margin:0;font-family:"Jua",sans-serif;font-weight:400;font-size:22px;color:#21456b}
+.mrow{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px dashed #eadbb5}
+.mrow svg{width:40px;height:40px;flex:none}
+.mrow .t{font-family:"Outfit",sans-serif;font-size:17px}
+.mrow .s{font-size:13px;color:var(--soft);font-family:"Gowun Dodum",sans-serif}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare .card{display:grid;gap:6px;align-content:start}
+.compare h3{margin:0;font-family:"Jua",sans-serif;font-weight:400;font-size:20px;color:#21456b}
+.compare .t{font-family:"Outfit",sans-serif;font-size:19px;font-weight:500}
+.compare .s{font-size:13px;color:var(--soft)}
+@media (max-width:560px){.compare{grid-template-columns:1fr}.shell-btn svg{width:76px;height:76px}.seabed .grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}}
+.foot{display:flex;justify-content:center;gap:10px}
+.teacher-link{background:none;border:0;color:#7d6a3f;font-family:"Gowun Dodum",sans-serif;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px}
+.celebrate{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50}
+.celebrate div{font-family:"Jua",sans-serif;font-size:clamp(26px,6vw,44px);color:#fff;text-shadow:0 3px 0 #21456b,0 0 20px rgba(33,69,107,.4);animation:cel 2.2s ease-out forwards}
+@keyframes cel{0%{transform:scale(.4);opacity:0}20%{transform:scale(1.1);opacity:1}80%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+.t-list{display:grid;gap:8px}
+.t-item{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:14px;background:#fffaf0}
+.t-item svg{width:44px;height:44px}
+.t-item .t{font-family:"Outfit",sans-serif;font-size:16px}
+.t-item .s{font-size:12px;color:var(--soft)}
+.row-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.t-grid{display:grid;gap:16px}
+.hint{font-size:13px;color:var(--soft);margin:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import * as React from 'react';
+import {createRoot} from 'react-dom/client';
+import htm from 'htm';
+import {Theme, Button, Dialog, DialogHeader, TextArea, TextInput, SegmentedControl, SegmentedControlItem, Badge} from '@astryxdesign/core';
+import {butterTheme} from '@astryxdesign/theme-butter/built';
+
+const h = htm.bind(React.createElement);
+const {useState, useEffect, useMemo, useRef} = React;
+
+/* ---------- 저장 ---------- */
+const KEY = 'shell-sentences-v1';
+const blank = () => ({v: 1, students: [], current: null, pin: ''});
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && Array.isArray(s.students)) return s; } catch (e) {}
+  return blank();
+}
+function persist(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const fmt = (iso) => { const [y, m, d] = iso.split('-').map(Number); return `${m}월 ${d}일`; };
+const monthKey = (iso) => iso.slice(0, 7);
+const monthName = (k) => { const [y, m] = k.split('-').map(Number); return `${y}년 ${m}월`; };
+
+/* ---------- 조개 그림 ---------- */
+const COLORS = {pink:'#ff9fbb', lav:'#b9a3ff', peach:'#ffbd8f', mint:'#86dcb8', butter:'#ffd95e', sky:'#8cc9ff'};
+const COLOR_NAMES = {pink:'분홍', lav:'보라', peach:'살구', mint:'민트', butter:'노랑', sky:'하늘'};
+const TYPES = ['scallop', 'clam', 'conch', 'cowrie', 'nautilus'];
+const TYPE_NAMES = {scallop:'가리비', clam:'대합', conch:'소라', cowrie:'개오지', nautilus:'앵무조개'};
+
+function shade(hex, f) { // f<0 어둡게, f>0 밝게
+  const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const t = f < 0 ? 0 : 255, p = Math.abs(f);
+  r = Math.round((t - r) * p + r); g = Math.round((t - g) * p + g); b = Math.round((t - b) * p + b);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+function Grad({id, c}) {
+  return h`<defs><radialGradient id=${id} cx="35%" cy="25%" r="85%">
+    <stop offset="0" stop-color=${shade(c, .65)}/><stop offset=".55" stop-color=${c}/><stop offset="1" stop-color=${shade(c, -.25)}/></radialGradient></defs>`;
+}
+let gid = 0;
+function Shell({type = 'scallop', color = 'pink', label}) {
+  const c = COLORS[color] || COLORS.pink, dk = shade(c, -.4), id = useMemo(() => 'g' + (gid++), []);
+  const fill = `url(#${id})`, line = {stroke: '#fff', strokeOpacity: .55, strokeWidth: 2.2, fill: 'none', strokeLinecap: 'round'};
+  let body;
+  if (type === 'scallop') {
+    const ribs = [];
+    for (let k = 0; k < 9; k++) { const a = (200 + k * 17.5) * Math.PI / 180; ribs.push(`M50 86 L${(50 + 38 * Math.cos(a)).toFixed(1)} ${(50 + 40 * Math.sin(a)).toFixed(1)}`); }
+    body = h`<path d="M50 88 L13 50 C9 22 30 9 50 9 C70 9 91 22 87 50 Z" fill=${fill} stroke=${dk} stroke-width="2.5" stroke-linejoin="round"/>
+      <path d=${ribs.join(' ')} ...${line}/>
+      <path d="M41 82 L31 93 Q40 95 47 90 Z M59 82 L69 93 Q60 95 53 90 Z" fill=${c} stroke=${dk} stroke-width="2" stroke-linejoin="round"/>
+      <path d="M22 26 Q34 14 48 13" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/>`;
+  } else if (type === 'clam') {
+    body = h`<path d="M8 60 C8 28 28 14 50 14 C72 14 92 28 92 60 C92 74 74 84 50 84 C26 84 8 74 8 60 Z" fill=${fill} stroke=${dk} stroke-width="2.5"/>
+      <path d="M18 62 C18 38 32 26 50 26 C68 26 82 38 82 62 M28 64 C28 46 38 38 50 38 C62 38 72 46 72 64 M38 66 C38 56 44 50 50 50 C56 50 62 56 62 66" ...${line}/>
+      <path d="M40 16 Q50 4 60 16" fill=${c} stroke=${dk} stroke-width="2"/>
+      <path d="M20 40 Q28 24 44 19" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/>`;
+  } else if (type === 'conch') {
+    body = h`<path d="M28 16 C56 2 90 24 84 54 C80 76 60 90 40 92 C34 92 30 88 30 82 L24 72 C14 60 12 34 28 16 Z" fill=${fill} stroke=${dk} stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M34 22 C52 16 72 28 74 46 M30 36 C46 30 64 38 70 54 M28 52 C40 48 56 54 62 66" ...${line}/>
+      <path d="M44 58 C56 56 66 66 62 80 C58 88 46 88 42 82 C38 74 38 62 44 58 Z" fill=${shade(c, .55)} stroke=${dk} stroke-width="2"/>
+      <path d="M30 14 L24 6 M48 9 L48 1 M66 14 L72 7" stroke=${dk} stroke-width="3" stroke-linecap="round"/>
+      <path d="M22 34 Q24 22 34 16" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/>`;
+  } else if (type === 'cowrie') {
+    body = h`<g transform="rotate(-18 50 52)"><ellipse cx="50" cy="52" rx="38" ry="27" fill=${fill} stroke=${dk} stroke-width="2.5"/>
+      <path d="M18 56 C34 50 66 50 82 56" stroke=${dk} stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M28 54 v5 M36 52.5 v5 M44 52 v5 M52 52 v5 M60 52.5 v5 M68 53.5 v5" stroke=${dk} stroke-width="2" stroke-linecap="round"/>
+      ${[[34,38,3],[48,33,4],[62,38,3],[42,44,2.5],[57,44,2.5],[70,45,2]].map(([x,y,r]) => h`<circle cx=${x} cy=${y} r=${r} fill="#fff" opacity=".75"/>`)}
+      <path d="M24 42 Q32 30 46 27" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85"/></g>`;
+  } else {
+    body = h`<circle cx="50" cy="52" r="38" fill=${fill} stroke=${dk} stroke-width="2.5"/>
+      <path d="M54 52 A4 4 0 0 0 46 52 A8 8 0 0 0 62 52 A14 14 0 0 0 34 52 A22 22 0 0 0 78 52" stroke=${dk} stroke-width="2.2" fill="none" opacity=".6" stroke-linecap="round"/>
+      <path d="M50 14 L50 30 M78 26 L66 36 M88 52 L74 52 M24 26 L36 36 M12 52 L26 52" stroke="#fff" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+      <path d="M88 52 C88 70 76 86 60 89 L64 74 C72 70 76 62 76 54 Z" fill=${shade(c, .5)} stroke=${dk} stroke-width="2"/>
+      <path d="M24 30 Q34 16 50 14" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85"/>`;
+  }
+  return h`<svg viewBox="0 0 100 100" role=${label ? 'img' : null} aria-label=${label || null} aria-hidden=${label ? null : 'true'}><${Grad} id=${id} c=${c}/>${body}</svg>`;
+}
+
+function OpenShell({color = 'pink'}) {
+  const c = COLORS[color] || COLORS.pink, dk = shade(c, -.4), id = useMemo(() => 'o' + (gid++), []);
+  return h`<svg viewBox="0 0 220 180" aria-hidden="true">
+    <${Grad} id=${id} c=${c}/>
+    <defs><radialGradient id=${id + 'p'} cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#fdf3f7"/><stop offset="1" stop-color="#e6d6e6"/></radialGradient></defs>
+    <ellipse cx="110" cy="170" rx="80" ry="7" fill="#c49646" opacity=".25"/>
+    <g class="lid"><path d="M110 108 L36 60 C30 22 70 4 110 4 C150 4 190 22 184 60 Z" fill=${`url(#${id})`} stroke=${dk} stroke-width="3" stroke-linejoin="round"/>
+      <path d="M110 104 L52 52 M110 104 L74 26 M110 104 L110 14 M110 104 L146 26 M110 104 L168 52" stroke="#fff" stroke-opacity=".5" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+    <path d="M110 108 L34 116 C30 150 70 168 110 168 C150 168 190 150 186 116 Z" fill=${`url(#${id})`} stroke=${dk} stroke-width="3" stroke-linejoin="round"/>
+    <path d="M48 118 C56 146 82 160 110 160 C138 160 164 146 172 118 Z" fill=${shade(c, .7)} opacity=".9"/>
+    <circle class="pearl" cx="110" cy="126" r="20" fill=${`url(#${id + 'p'})`} stroke="#e8d6e8" stroke-width="1.5"/>
+    <circle cx="103" cy="119" r="5" fill="#fff"/>
+    <path d="M150 92 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 Z M64 96 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 Z" fill="#fff8d0"/>
+  </svg>`;
+}
+
+/* 진주 목걸이: 문장 하나에 진주 하나. 한 줄에 20개씩, 줄이 늘어난다 */
+function Necklace({n}) {
+  const per = 20, rows = Math.max(1, Math.ceil(n / per)), W = 600, rowH = 46;
+  const pearls = [];
+  for (let i = 0; i < Math.max(n, 0); i++) {
+    // 진주는 줄 가운데부터 양옆으로 꿴다. 줄(2차 베지어)의 실제 높이에 맞춘다
+    const r = Math.floor(i / per), k = i % per, m = Math.min(per, n - r * per);
+    const t = .5 + (k - (m - 1) / 2) / (per + 2);
+    const x = 18 + t * (W - 36), y = 12 + r * rowH + 2 * t * (1 - t) * 56;
+    pearls.push(h`<g key=${i}><circle cx=${x} cy=${y} r="11" fill="url(#pearlG)" stroke="#e3d3e3" stroke-width="1"/><circle cx=${x - 3.5} cy=${y - 3.5} r="3" fill="#fff"/></g>`);
+  }
+  const strings = Array.from({length: rows}, (_, r) => h`<path key=${'s' + r} d=${`M18 ${12 + r * rowH} Q${W / 2} ${12 + r * rowH + 56} ${W - 18} ${12 + r * rowH}`} stroke="#d7b46a" stroke-width="2" fill="none"/>`);
+  return h`<svg viewBox=${`0 0 ${W} ${rows * rowH + 18}`} aria-hidden="true">
+    <defs><radialGradient id="pearlG" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#fdf2f6"/><stop offset="1" stop-color="#e2d2e4"/></radialGradient></defs>
+    ${strings}${pearls}
+    ${n === 0 ? h`<text x=${W / 2} y="44" text-anchor="middle" font-family="Jua" font-size="18" fill="#a48b52">첫 진주를 기다리는 중</text>` : null}
+  </svg>`;
+}
+
+function Bubbles() {
+  const list = useMemo(() => Array.from({length: 10}, (_, i) => ({l: 4 + i * 9.6 + (i % 3) * 2, s: 8 + (i * 7) % 18, d: 9 + (i * 5) % 11, delay: (i * 1.7) % 9})), []);
+  return list.map((b, i) => h`<span key=${i} class="bubble" style=${{left: b.l + '%', width: b.s + 'px', height: b.s + 'px', animationDuration: b.d + 's', animationDelay: b.delay + 's'}}></span>`);
+}
+const Weed = ({left, color = '#5fbf9a', flip}) => h`<svg class="weed" viewBox="0 0 60 140" style=${{left, transform: flip ? 'scaleX(-1)' : null}} aria-hidden="true">
+  <path d="M30 140 C10 110 46 90 26 60 C10 36 40 20 30 0 M30 140 C44 116 18 100 38 74 C50 56 30 44 42 26" stroke=${color} stroke-width="9" fill="none" stroke-linecap="round"/></svg>`;
+
+/* 영어 문장 소리 내어 듣기 (기기에 영어 목소리가 있을 때만) */
+function speak(text) {
+  try {
+    if (!('speechSynthesis' in window)) return false;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .85;
+    const v = window.speechSynthesis.getVoices().find(v => /^en(-|_)US/i.test(v.lang)) || window.speechSynthesis.getVoices().find(v => /^en/i.test(v.lang));
+    if (v) u.voice = v;
+    window.speechSynthesis.speak(u); return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- 조개 담기 / 고치기 창 ---------- */
+function ShellForm({isOpen, onClose, initial, onSave, title, isTeacher}) {
+  const [text, setText] = useState(''), [ko, setKo] = useState(''), [comment, setComment] = useState('');
+  const [type, setType] = useState('scallop'), [color, setColor] = useState('pink'), [date, setDate] = useState(today());
+  useEffect(() => {
+    if (!isOpen) return;
+    setText(initial?.text || ''); setKo(initial?.ko || ''); setComment(initial?.comment || '');
+    setType(initial?.type || TYPES[Math.floor(Math.random() * TYPES.length)]);
+    setColor(initial?.color || Object.keys(COLORS)[Math.floor(Math.random() * 6)]);
+    setDate(initial?.date || today());
+  }, [isOpen]);
+  const ok = text.trim().length > 0;
+  const save = () => { if (!ok) return; onSave({text: text.trim(), ko: ko.trim(), comment: comment.trim(), type, color, date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today()}); };
+  return h`<${Dialog} isOpen=${isOpen} onOpenChange=${(o) => { if (!o) onClose(); }} purpose="form" width=${520} maxHeight="92dvh" padding=${4}>
+    <${DialogHeader} title=${title} subtitle=${isTeacher ? '선생님 화면에서 고치는 중이에요' : '오늘 쓴 영어 문장을 조개에 담아요'} onOpenChange=${(o) => { if (!o) onClose(); }}/>
+    <div style=${{display: 'grid', gap: '12px', paddingTop: '12px'}}>
+      <${TextArea} label="영어 문장" value=${text} onChange=${setText} rows=${3} placeholder="I like my cat because she is soft." hasAutoFocus=${!initial} autoCapitalize="sentences"/>
+      <${TextInput} label="한국어 뜻 (안 써도 돼요)" value=${ko} onChange=${setKo} placeholder="나는 우리 고양이가 부드러워서 좋아."/>
+      ${isTeacher ? h`<${TextInput} label="선생님 한마디 (안 써도 돼요)" value=${comment} onChange=${setComment} placeholder="because를 잘 썼어요!"/>
+        <${TextInput} label="날짜 (YYYY-MM-DD)" value=${date} onChange=${setDate} inputMode="numeric"/>` : null}
+      <div><p class="lbl">조개 고르기</p>
+        <div class="picker" role="radiogroup" aria-label="조개 모양">
+          ${TYPES.map(t => h`<button key=${t} type="button" role="radio" aria-checked=${type === t} class=${type === t ? 'on' : ''} onClick=${() => setType(t)} title=${TYPE_NAMES[t]}><${Shell} type=${t} color=${color} label=${TYPE_NAMES[t]}/></button>`)}
+        </div></div>
+      <div><p class="lbl">색 고르기</p>
+        <div class="colors" role="radiogroup" aria-label="조개 색">
+          ${Object.keys(COLORS).map(k => h`<button key=${k} type="button" role="radio" aria-checked=${color === k} aria-label=${COLOR_NAMES[k]} class=${color === k ? 'on' : ''} onClick=${() => setColor(k)}><span style=${{background: COLORS[k]}}></span></button>`)}
+        </div></div>
+      <div style=${{display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px'}}>
+        <${Button} label="취소" variant="ghost" onClick=${onClose}/>
+        <${Button} label=${initial ? '고치기' : '조개에 담기'} variant="primary" size="lg" isDisabled=${!ok} onClick=${save}/>
+      </div>
+    </div>
+  </${Dialog}>`;
+}
+
+/* ---------- 조개 열어 보기 ---------- */
+function ShellView({shell, onClose}) {
+  const [canSpeak] = useState(() => 'speechSynthesis' in window);
+  return h`<${Dialog} isOpen=${!!shell} onOpenChange=${(o) => { if (!o) onClose(); }} width=${520} maxHeight="92dvh" padding=${4}>
+    ${shell ? h`<${DialogHeader} title=${`${fmt(shell.date)}의 조개`} subtitle=${`${COLOR_NAMES[shell.color] || ''} ${TYPE_NAMES[shell.type] || '조개'}`} onOpenChange=${(o) => { if (!o) onClose(); }}/>
+      <div style=${{display: 'grid', gap: '8px', paddingTop: '10px'}}>
+        <div class="open-shell"><${OpenShell} color=${shell.color}/></div>
+        <p class="sentence" lang="en">${shell.text}</p>
+        ${shell.ko ? h`<p class="ko">${shell.ko}</p>` : null}
+        ${shell.comment ? h`<div class="note"><b>선생님 한마디</b>${shell.comment}</div>` : null}
+        <div style=${{display: 'flex', gap: '8px', justifyContent: 'center', paddingTop: '6px'}}>
+          ${canSpeak ? h`<${Button} label="소리로 듣기" variant="secondary" size="lg" onClick=${() => speak(shell.text)}/>` : null}
+          <${Button} label="닫기" variant="primary" size="lg" onClick=${onClose}/>
+        </div>
+      </div>` : null}
+  </${Dialog}>`;
+}
+
+/* ---------- 달별 모음 ---------- */
+function Months({shells, onOpen}) {
+  if (!shells.length) return null;
+  const sorted = [...shells].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.created - b.created);
+  const first = sorted[0], last = sorted[sorted.length - 1];
+  const groups = {};
+  for (const s of sorted) (groups[monthKey(s.date)] ||= []).push(s);
+  const keys = Object.keys(groups).sort().reverse();
+  return h`<div style=${{display: 'grid', gap: '14px'}}>
+    ${sorted.length >= 2 ? h`<div class="compare">
+      <div class="card"><h3>처음 담은 문장</h3><p class="t" lang="en">${first.text}</p><p class="s">${fmt(first.date)}</p></div>
+      <div class="card"><h3>가장 최근 문장</h3><p class="t" lang="en">${last.text}</p><p class="s">${fmt(last.date)}</p></div>
+    </div>` : null}
+    ${keys.map(k => h`<div key=${k} class="card month">
+      <h3>${monthName(k)} <${Badge} label=${`진주 ${groups[k].length}개`} variant="yellow"/></h3>
+      ${groups[k].slice().reverse().map(s => h`<div key=${s.id} class="mrow" role="button" tabindex="0" onClick=${() => onOpen(s)} onKeyDown=${(e) => { if (e.key === 'Enter') onOpen(s); }} style=${{cursor: 'pointer'}}>
+        <${Shell} type=${s.type} color=${s.color}/><div><div class="t" lang="en">${s.text}</div><div class="s">${fmt(s.date)}${s.comment ? ' · 선생님 한마디 있음' : ''}</div></div></div>`)}
+    </div>`)}
+  </div>`;
+}
+
+/* ---------- 학생 화면 ---------- */
+function StudentView({state, setState, goTeacher}) {
+  const st = state.students.find(s => s.id === state.current) || state.students[0];
+  const [view, setView] = useState('sea'), [adding, setAdding] = useState(false), [opened, setOpened] = useState(null);
+  const [fresh, setFresh] = useState(null), [cel, setCel] = useState(null);
+  if (!st) return h`<div class="page"><div class="card empty">
+      <svg viewBox="0 0 100 100" width="120" height="120" aria-hidden="true"><${Shell} type="scallop" color="pink"/></svg>
+      <h2>조개 문장함</h2><p>선생님 화면에서 학생을 먼저 등록해 주세요.</p>
+      <${Button} label="선생님 화면으로" variant="primary" size="lg" onClick=${goTeacher}/></div></div>`;
+  const shells = st.shells || [];
+  const ordered = [...shells].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.created - b.created);
+  const add = (data) => {
+    const s = {id: uid(), created: Date.now(), ...data};
+    setState(prev => ({...prev, students: prev.students.map(x => x.id === st.id ? {...x, shells: [...(x.shells || []), s]} : x)}));
+    setAdding(false); setFresh(s.id); setView('sea');
+    setCel(Math.random()); setTimeout(() => setCel(null), 2300);
+  };
+  return h`<div class="page">
+    <div class="top">
+      <div class="title"><svg viewBox="0 0 100 100" width="54" height="54" aria-hidden="true"><${Shell} type="scallop" color="pink"/></svg>
+        <div><h1>조개 문장함</h1><small>내가 쓴 영어 문장이 조개 속 진주가 돼요</small></div></div>
+      ${state.students.length > 1 ? h`<div class="kids" role="tablist" aria-label="학생">
+        ${state.students.map(s => h`<button key=${s.id} role="tab" aria-selected=${s.id === st.id} class=${'kid' + (s.id === st.id ? ' on' : '')} onClick=${() => setState(p => ({...p, current: s.id}))}>${s.name}</button>`)}
+      </div>` : h`<div class="kids"><span class="kid on">${st.name}</span></div>`}
+    </div>
+    <div class="card necklace"><${Necklace} n=${shells.length}/><p>${st.name}의 진주 목걸이 · 진주 ${shells.length}개</p></div>
+    <div class="bar">
+      <${SegmentedControl} label="보기" value=${view} onChange=${setView} size="lg">
+        <${SegmentedControlItem} value="sea" label="조개 바다"/>
+        <${SegmentedControlItem} value="months" label="달별 모음"/>
+      </${SegmentedControl}>
+      <${Button} label="새 조개 담기" variant="primary" size="lg" elevation="low" onClick=${() => setAdding(true)}/>
+    </div>
+    ${view === 'sea' ? h`<div class="seabed">
+      <${Weed} left="-10px"/><${Weed} left="calc(100% - 60px)" color="#7fcfae" flip/>
+      ${shells.length ? h`<div class="grid">
+        ${ordered.map((s, i) => h`<button key=${s.id} class=${'shell-btn' + (s.id === fresh ? ' new' : '')} onClick=${() => setOpened(s)} aria-label=${`${fmt(s.date)} 조개 열기`}
+            style=${{transform: `rotate(${((i * 37) % 17) - 8}deg)`}}>
+          <${Shell} type=${s.type} color=${s.color}/><span class="d">${fmt(s.date)}</span></button>`)}
+      </div>` : h`<div class="empty"><h2>아직 빈 바다예요</h2><p>오늘 쓴 영어 문장 하나를 조개에 담아 볼까요?</p>
+        <${Button} label="첫 조개 담기" variant="primary" size="lg" onClick=${() => setAdding(true)}/></div>`}
+    </div>` : h`<${Months} shells=${shells} onOpen=${setOpened}/>`}
+    <div class="foot"><button class="teacher-link" onClick=${goTeacher}>선생님</button></div>
+    <${ShellForm} isOpen=${adding} onClose=${() => setAdding(false)} onSave=${add} title="새 조개 담기"/>
+    <${ShellView} shell=${opened} onClose=${() => setOpened(null)}/>
+    ${cel ? h`<div class="celebrate" aria-live="polite"><div>진주가 하나 생겼어요!</div></div>` : null}
+  </div>`;
+}
+
+/* ---------- 선생님 화면 ---------- */
+function PinGate({pin, onPass, onBack}) {
+  const [v, setV] = useState(''), [err, setErr] = useState(false);
+  const go = () => { if (v === pin) onPass(); else { setErr(true); setV(''); } };
+  return h`<div class="page"><div class="card" style=${{maxWidth: '420px', margin: '40px auto', display: 'grid', gap: '12px'}}>
+    <h2 class="jua" style=${{margin: 0, fontSize: '26px'}}>선생님 화면</h2>
+    <${TextInput} label="비밀번호" type="password" inputMode="numeric" value=${v} onChange=${(x) => { setV(x); setErr(false); }} onEnter=${go} hasAutoFocus
+      status=${err ? {type: 'error', message: '비밀번호가 달라요'} : undefined}/>
+    <div style=${{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
+      <${Button} label="돌아가기" variant="ghost" onClick=${onBack}/><${Button} label="들어가기" variant="primary" onClick=${go}/></div>
+  </div></div>`;
+}
+
+function TeacherView({state, setState, goStudent}) {
+  const [name, setName] = useState(''), [sel, setSel] = useState(state.current || state.students[0]?.id || null);
+  const [editing, setEditing] = useState(null), [adding, setAdding] = useState(false), [confirm, setConfirm] = useState(null);
+  const [pin, setPin] = useState(state.pin || ''), [msg, setMsg] = useState('');
+  const fileRef = useRef(null);
+  const st = state.students.find(s => s.id === sel);
+  const flash = (m) => { setMsg(m); setTimeout(() => setMsg(''), 2500); };
+  const addStudent = () => {
+    const n = name.trim(); if (!n) return;
+    const s = {id: uid(), name: n, shells: []};
+    setState(p => ({...p, students: [...p.students, s], current: p.current || s.id})); setSel(s.id); setName(''); flash(`${n} 학생을 등록했어요`);
+  };
+  const upd = (fn) => setState(p => ({...p, students: p.students.map(x => x.id === sel ? fn(x) : x)}));
+  const doConfirm = () => {
+    if (!confirm) return;
+    if (confirm.kind === 'shell') upd(x => ({...x, shells: x.shells.filter(s => s.id !== confirm.id)}));
+    if (confirm.kind === 'student') { setState(p => { const rest = p.students.filter(x => x.id !== confirm.id); return {...p, students: rest, current: rest[0]?.id || null}; }); setSel(state.students.find(x => x.id !== confirm.id)?.id || null); }
+    setConfirm(null);
+  };
+  const backup = () => {
+    try {
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `조개문장함-백업-${today()}.json`; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) { flash('백업 파일을 만들지 못했어요'); }
+  };
+  const restore = (e) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { try { const s = JSON.parse(r.result); if (!Array.isArray(s.students)) throw 0; setState({...blank(), ...s}); setSel(s.students[0]?.id || null); flash('백업을 불러왔어요'); } catch (x) { flash('이 파일은 불러올 수 없어요'); } };
+    r.readAsText(f); e.target.value = '';
+  };
+  const savePin = () => { if (pin && !/^\d{4,8}$/.test(pin)) { flash('비밀번호는 숫자 4~8자리로 정해 주세요'); return; } setState(p => ({...p, pin})); flash(pin ? '비밀번호를 정했어요' : '비밀번호를 껐어요'); };
+  const sorted = st ? [...(st.shells || [])].sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.created - a.created) : [];
+  return h`<div class="page t-grid">
+    <div class="top"><div class="title"><div><h1>선생님 화면</h1><small>학생 등록, 문장 고치기, 선생님 한마디, 백업</small></div></div>
+      <${Button} label="학생 화면으로" variant="primary" onClick=${goStudent}/></div>
+    ${msg ? h`<div class="card" role="status" style=${{padding: '10px 16px'}}>${msg}</div>` : null}
+    <div class="card" style=${{display: 'grid', gap: '12px'}}>
+      <h2 class="jua" style=${{margin: 0, fontSize: '22px'}}>학생</h2>
+      <div style=${{display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap'}}>
+        <div style=${{flex: '1 1 220px'}}><${TextInput} label="새 학생 이름" value=${name} onChange=${setName} onEnter=${addStudent} placeholder="이름 또는 별명"/></div>
+        <${Button} label="등록" variant="primary" onClick=${addStudent} isDisabled=${!name.trim()}/></div>
+      ${state.students.length ? h`<div class="kids">${state.students.map(s => h`<button key=${s.id} class=${'kid' + (s.id === sel ? ' on' : '')} onClick=${() => setSel(s.id)}>${s.name} · ${(s.shells || []).length}</button>`)}</div>` : h`<p class="hint">아직 등록한 학생이 없어요.</p>`}
+    </div>
+    ${st ? h`<div class="card" style=${{display: 'grid', gap: '12px'}}>
+      <div class="bar"><h2 class="jua" style=${{margin: 0, fontSize: '22px'}}>${st.name}의 조개 ${sorted.length}개</h2>
+        <div class="row-btns"><${Button} label="조개 담기" variant="primary" onClick=${() => setAdding(true)}/>
+          <${Button} label="학생 지우기" variant="destructive" onClick=${() => setConfirm({kind: 'student', id: st.id, label: `${st.name} 학생과 조개 ${sorted.length}개를 지울까요?`})}/></div></div>
+      ${sorted.length ? h`<div class="t-list">${sorted.map(s => h`<div key=${s.id} class="t-item">
+          <${Shell} type=${s.type} color=${s.color}/>
+          <div><div class="t" lang="en">${s.text}</div><div class="s">${fmt(s.date)}${s.ko ? ' · ' + s.ko : ''}${s.comment ? ' · 한마디: ' + s.comment : ''}</div></div>
+          <div class="row-btns"><${Button} label="고치기" size="sm" onClick=${() => setEditing(s)}/><${Button} label="지우기" size="sm" variant="ghost" onClick=${() => setConfirm({kind: 'shell', id: s.id, label: '이 조개를 지울까요?'})}/></div>
+        </div>`)}</div>` : h`<p class="hint">아직 담은 문장이 없어요.</p>`}
+    </div>` : null}
+    <div class="card" style=${{display: 'grid', gap: '12px'}}>
+      <h2 class="jua" style=${{margin: 0, fontSize: '22px'}}>백업과 비밀번호</h2>
+      <p class="hint">기록은 이 기기의 브라우저에만 저장돼요. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 백업해 두세요.</p>
+      <div class="row-btns" style=${{justifyContent: 'flex-start'}}>
+        <${Button} label="백업 파일 받기" onClick=${backup}/>
+        <${Button} label="백업 불러오기" onClick=${() => fileRef.current?.click()}/>
+        <input ref=${fileRef} type="file" accept="application/json,.json" hidden onChange=${restore}/></div>
+      <div style=${{display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap'}}>
+        <div style=${{flex: '1 1 220px'}}><${TextInput} label="선생님 비밀번호 (숫자 4~8자리, 비우면 끔)" type="password" inputMode="numeric" value=${pin} onChange=${setPin}/></div>
+        <${Button} label="저장" onClick=${savePin}/></div>
+    </div>
+    <${ShellForm} isOpen=${adding} onClose=${() => setAdding(false)} isTeacher title="조개 담기"
+      onSave=${(d) => { upd(x => ({...x, shells: [...(x.shells || []), {id: uid(), created: Date.now(), ...d}]})); setAdding(false); }}/>
+    <${ShellForm} isOpen=${!!editing} initial=${editing} onClose=${() => setEditing(null)} isTeacher title="조개 고치기"
+      onSave=${(d) => { upd(x => ({...x, shells: x.shells.map(s => s.id === editing.id ? {...s, ...d} : s)})); setEditing(null); }}/>
+    <${Dialog} isOpen=${!!confirm} onOpenChange=${(o) => { if (!o) setConfirm(null); }} width=${380} padding=${4}>
+      <${DialogHeader} title="지우기" onOpenChange=${(o) => { if (!o) setConfirm(null); }}/>
+      <div style=${{display: 'grid', gap: '14px', paddingTop: '12px'}}><p style=${{margin: 0}}>${confirm?.label} 지운 뒤에는 되돌릴 수 없어요.</p>
+        <div class="row-btns"><${Button} label="취소" variant="ghost" onClick=${() => setConfirm(null)}/><${Button} label="지우기" variant="destructive" onClick=${doConfirm}/></div></div>
+    </${Dialog}>
+  </div>`;
+}
+
+/* ---------- 앱 ---------- */
+function App() {
+  const [state, setStateRaw] = useState(load);
+  const [route, setRoute] = useState(location.hash === '#teacher' ? 'teacher' : 'student');
+  const [unlocked, setUnlocked] = useState(false);
+  const setState = (fn) => setStateRaw(prev => { const next = typeof fn === 'function' ? fn(prev) : fn; persist(next); return next; });
+  useEffect(() => {
+    const onHash = () => setRoute(location.hash === '#teacher' ? 'teacher' : 'student');
+    const onStore = (e) => { if (e.key === KEY) setStateRaw(load()); };
+    addEventListener('hashchange', onHash); addEventListener('storage', onStore);
+    return () => { removeEventListener('hashchange', onHash); removeEventListener('storage', onStore); };
+  }, []);
+  const goTeacher = () => { location.hash = '#teacher'; };
+  const goStudent = () => { history.replaceState(null, '', location.pathname); setRoute('student'); setUnlocked(false); };
+  let body;
+  if (route === 'teacher') body = (state.pin && !unlocked) ? h`<${PinGate} pin=${state.pin} onPass=${() => setUnlocked(true)} onBack=${goStudent}/>` : h`<${TeacherView} state=${state} setState=${setState} goStudent=${goStudent}/>`;
+  else body = h`<${StudentView} state=${state} setState=${setState} goTeacher=${goTeacher}/>`;
+  return h`<${Theme} theme=${butterTheme} mode="light"><${Bubbles}/>${body}</${Theme}>`;
+}
+
+createRoot(document.getElementById('root')).render(h`<${App}/>`);
+</script>
+</body>
+</html>
