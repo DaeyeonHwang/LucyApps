@@ -1,4 +1,4 @@
-// 바다 구조대 로컬 확인용 서버. 실행: node tools/serve.mjs  → http://localhost:5180
+// LucyApps 로컬 확인용 서버. 실행: node tools/serve.mjs  → http://localhost:5180 (바다 구조대 /sea-rescue/, 블록 타워 /block-tower/)
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, dirname } from 'node:path';
@@ -18,4 +18,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     res.end(body);
   } catch { res.writeHead(404).end('not found'); }
-}).listen(port, () => console.log(`바다 구조대: http://localhost:${port}`));
+}).listen(port, () => console.log(`LucyApps: http://localhost:${port}`));

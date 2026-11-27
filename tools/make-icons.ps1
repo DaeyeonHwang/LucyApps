@@ -1,6 +1,6 @@
 # 바다 구조대 앱 아이콘 만들기 (구명튜브 모양). 실행: powershell -File tools\make-icons.ps1
 Add-Type -AssemblyName System.Drawing
-$out = Join-Path $PSScriptRoot '..\icons'
+$out = Join-Path $PSScriptRoot '..\sea-rescue\icons'
 New-Item -ItemType Directory -Force $out | Out-Null
 
 function Draw-Icon([int]$size, [string]$path, [bool]$maskable) {
