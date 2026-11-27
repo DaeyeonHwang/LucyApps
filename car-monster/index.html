@@ -332,6 +332,12 @@ const CARS = [
       <rect x="6" y="62" width="6" height="6" rx="1" fill="#ff2b40"/>
       ${WHEEL(50,88,18)}${WHEEL(156,88,18)}</svg>` },
 ];
+/* 2026-11-27: 자동차 그림은 Blender 렌더(cars/carN.webp, tools/blender_cars.py)로 바꿨다.
+   예전 SVG는 flat()에 남겨 둔다 (되돌릴 때 이 블록만 지우면 된다). */
+CARS.forEach((c, i) => {
+  c.flat = c.svg;
+  c.svg = () => `<svg viewBox="0 0 200 112"><image href="cars/car${i}.webp" x="0" y="0" width="200" height="112" preserveAspectRatio="xMidYMid meet"/></svg>`;
+});
 
 /* 몬스터: 120x120 */
 const MSHADOW = `<ellipse cx="60" cy="113" rx="46" ry="5" fill="#16233f" opacity=".2"/>`;
