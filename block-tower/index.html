@@ -86,28 +86,6 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
 .sticker:nth-child(2){animation-delay:.12s}.sticker:nth-child(3){animation-delay:.24s}
 .btn.crash{background:#FF5A5F;box-shadow:0 5px 0 #C93B40;font-size:28px;padding:14px 30px}
 .btn.crash:active{box-shadow:0 1px 0 #C93B40}
-/* 특수 블록, 꾸미기 */
-.bag{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.bag .it{display:flex;align-items:center;gap:4px;font-family:var(--display);font-size:17px;background:#F7FAFF;border:2px solid var(--line);border-radius:10px;padding:2px 10px 2px 6px;font-variant-numeric:tabular-nums}
-.reveal{display:flex;align-items:center;gap:12px}
-.reveal svg{animation:pop .55s cubic-bezier(.3,1.6,.5,1) both;filter:drop-shadow(0 4px 0 rgba(30,42,74,.15))}
-.decor{width:100%;border-top:3px dashed var(--line);padding-top:16px;margin-top:4px;display:grid;gap:12px;justify-items:center}
-.decor h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0;color:var(--purple-dark)}
-.decor-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;width:100%}
-.decor-side{display:grid;gap:10px;min-width:0}
-.preview{background:var(--blue-soft);border-radius:18px;padding:8px}
-.preview svg{width:130px;height:124px;display:block}
-.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
-.item{border:2px solid var(--line);border-radius:12px;padding:8px 6px;display:grid;gap:5px;justify-items:center;text-align:center;background:#fff}
-.item b{font-family:var(--display);font-weight:400;font-size:18px}
-.item .price{display:flex;gap:6px;align-items:center;font-family:var(--display);font-size:14px;color:var(--soft);flex-wrap:wrap;justify-content:center}
-.item .price span{display:flex;align-items:center;gap:1px}
-.item button{font-family:var(--display);font-size:16px;padding:4px 14px;border-radius:9px;background:var(--blue);color:#fff}
-.item button:disabled{background:var(--gray);cursor:default}
-.item button.off{background:var(--card);color:var(--soft);border:2px solid var(--line)}
-.item.own{border-color:var(--purple)}
-.item.wearing{border-color:var(--good);background:#DFF6EA}
-@media (max-width:560px){.decor-wrap{grid-template-columns:1fr;justify-items:center}}
 .drop{animation:drop .55s cubic-bezier(.3,1.5,.55,1) both;transform-box:fill-box}
 @keyframes drop{from{transform:translateY(-260px)}to{transform:none}}
 .flash{animation:flash .9s ease-out 1}
@@ -248,7 +226,6 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
       <svg id="tower" viewBox="0 0 320 520" role="img" aria-label="미션마다 블록이 쌓이는 타워"></svg>
       <p class="say" id="say"></p>
       <div class="track" id="track"></div>
-      <div class="bag" id="bag" aria-label="모은 특수 블록"></div>
       <p class="sticker-rule" id="srule"></p>
     </section>
     <section class="panel" id="stage" aria-live="polite"></section>
@@ -265,10 +242,6 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
 </div>
 
 <div class="overlay" id="overlay" hidden></div>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <linearGradient id="g-rainbow" x1="0" x2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset=".25" stop-color="#FFC93C"/><stop offset=".5" stop-color="#3DCB7A"/><stop offset=".75" stop-color="#2EC4E6"/><stop offset="1" stop-color="#A77BFF"/></linearGradient>
-  <linearGradient id="g-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF0A0"/><stop offset=".5" stop-color="#FFD24A"/><stop offset="1" stop-color="#E0A800"/></linearGradient>
-</defs></svg>
 
 <script>
 (function(){
@@ -317,73 +290,23 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
   /* 타워 그리기 (위쪽에 지붕과 꼭대기 친구 자리를 둠) */
   const BASE=()=>60*N()+57;        // 맨 아래층 윗면 y (층 수에 맞춰 그림 높이가 바뀜)
   const FY=i=>BASE()-60*i;         // 층 i의 윗면 y
-  /* 특수 블록과 블록 친구 꾸미기. 모은 것은 "새 수업"을 눌러도 남도록 따로 저장한다 */
-  const SP={
-    sparkle:{name:'반짝 블록',c:'#FFF3A8',d:'#E0BE2E'},
-    ice:{name:'얼음 블록',c:'#BDEBFF',d:'#6FC3E8'},
-    rainbow:{name:'무지개 블록',c:'url(#g-rainbow)',d:'#7B4FD9'},
-    gold:{name:'황금 블록',c:'url(#g-gold)',d:'#B98200'}
-  };
-  const SP_ORDER=['sparkle','ice','rainbow','gold'];
-  const ITEMS=[
-    {k:'ribbon',name:'리본',slot:'side',cost:{sparkle:2}},
-    {k:'glasses',name:'선글라스',slot:'face',cost:{ice:2}},
-    {k:'cape',name:'망토',slot:'back',cost:{rainbow:2}},
-    {k:'phones',name:'헤드폰',slot:'top',cost:{sparkle:2,ice:2}},
-    {k:'crown',name:'왕관',slot:'top',cost:{gold:1}}
-  ];
-  const CKEY='block-tower-collection-v1';
-  let C;
-  try{C=JSON.parse(localStorage.getItem(CKEY))}catch(e){C=null}
-  if(!C||!C.blocks)C={blocks:{},owned:{},wear:{}};
-  SP_ORDER.forEach(k=>{C.blocks[k]=C.blocks[k]||0});C.owned=C.owned||{};C.wear=C.wear||{};
-  function saveC(){try{localStorage.setItem(CKEY,JSON.stringify(C))}catch(e){}}
-  // 퍼펙트 층(세 블록 모두)일 때만 황금 블록이 나오고, 무지개도 더 잘 나온다
-  function drawSpecial(perfect){
-    const w=perfect?{sparkle:30,ice:30,rainbow:25,gold:15}:{sparkle:45,ice:40,rainbow:15};
-    let t=Math.random()*Object.values(w).reduce((a,b)=>a+b,0);
-    for(const k in w){t-=w[k];if(t<0)return k}
-    return 'sparkle';
-  }
-  const star=(cx,cy,r,fill)=>`<path d="M${cx} ${cy-r}L${cx+r*.3} ${cy-r*.3}L${cx+r} ${cy}L${cx+r*.3} ${cy+r*.3}L${cx} ${cy+r}L${cx-r*.3} ${cy+r*.3}L${cx-r} ${cy}L${cx-r*.3} ${cy-r*.3}Z" fill="${fill}"/>`;
-  function spDeco(t,x,y){
-    if(t==='sparkle')return star(x+52,y+20,10,'#fff')+star(x+30,y+32,6,'#FFC93C')+star(x+62,y+38,4,'#fff');
-    if(t==='ice')return `<path d="M${x+14} ${y+42}L${x+34} ${y+14}M${x+30} ${y+44}L${x+46} ${y+22}M${x+52} ${y+40}L${x+62} ${y+26}" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".85"/>`;
-    if(t==='gold')return star(x+38,y+26,13,'#FFF6C8')+star(x+62,y+14,4,'#fff');
-    return '';
-  }
-  function spIcon(t,size){
-    return `<svg viewBox="-4 -12 84 70" width="${size}" height="${size*70/84}" aria-hidden="true">${brick(0,0,SP[t],'',spDeco(t,0,0))}</svg>`;
-  }
-  function acc(x,y,part){
-    const w=C.wear;let s='';
-    if(part==='back'&&w.back==='cape')s+=`<path d="M${x-8} ${y+6}L${x+48} ${y+6}L${x+54} ${y+44}L${x-14} ${y+44}Z" fill="#A77BFF" stroke="#1E2A4A" stroke-width="2.5" stroke-linejoin="round"/>`;
-    if(part==='front'){
-      if(w.face==='glasses')s+=`<rect x="${x+5}" y="${y+10}" width="14" height="10" rx="3" fill="#1E2A4A"/><rect x="${x+21}" y="${y+10}" width="14" height="10" rx="3" fill="#1E2A4A"/><path d="M${x+18} ${y+13}h4" stroke="#1E2A4A" stroke-width="2.5"/><rect x="${x+7}" y="${y+12}" width="4" height="2" fill="#fff" opacity=".8"/><rect x="${x+23}" y="${y+12}" width="4" height="2" fill="#fff" opacity=".8"/>`;
-      if(w.top==='phones')s+=`<path d="M${x+2} ${y+14}C${x+2} ${y-16} ${x+38} ${y-16} ${x+38} ${y+14}" fill="none" stroke="#1E2A4A" stroke-width="4"/><rect x="${x-6}" y="${y+7}" width="11" height="17" rx="4" fill="#2F6BFF" stroke="#1E2A4A" stroke-width="2"/><rect x="${x+35}" y="${y+7}" width="11" height="17" rx="4" fill="#2F6BFF" stroke="#1E2A4A" stroke-width="2"/>`;
-      if(w.top==='crown')s+=`<path d="M${x+7} ${y-1}V${y-18}L${x+14} ${y-10}L${x+20} ${y-22}L${x+26} ${y-10}L${x+33} ${y-18}V${y-1}Z" fill="#FFD24A" stroke="#1E2A4A" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${x+20}" cy="${y-7}" r="2.6" fill="#FF5A5F"/>`;
-      if(w.side==='ribbon')s+=`<path d="M${x+34} ${y-2}l-9 -7v14zM${x+34} ${y-2}l9 -7v14z" fill="#FF7AC2" stroke="#1E2A4A" stroke-width="2" stroke-linejoin="round"/><circle cx="${x+34}" cy="${y-2}" r="3.4" fill="#FF7AC2" stroke="#1E2A4A" stroke-width="2"/>`;
-    }
-    return s;
-  }
-
-  function brick(x,y,col,cls,extra){
+  function brick(x,y,col,cls){
     return `<g class="bk ${cls||''}"><rect x="${x+10}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x+46}" y="${y-8}" width="18" height="10" rx="3" fill="${col.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x}" y="${y}" width="76" height="54" rx="8" fill="${col.c}" stroke="#1E2A4A" stroke-width="3"/>
       <rect x="${x+5}" y="${y+40}" width="66" height="9" rx="4" fill="${col.d}" opacity=".55"/>
-      <rect x="${x+8}" y="${y+7}" width="20" height="6" rx="3" fill="#fff" opacity=".55"/>${extra||''}</g>`;
+      <rect x="${x+8}" y="${y+7}" width="20" height="6" rx="3" fill="#fff" opacity=".55"/></g>`;
   }
   function ghost(x,y,col,strong){
     return `<rect x="${x+2}" y="${y+2}" width="72" height="50" rx="8" fill="${strong?'#fff':'none'}" stroke="${col.c}" stroke-width="3" stroke-dasharray="8 6" opacity="${strong?1:.45}"/>`;
   }
   function buddy(x,y,cls){
     const b=BUDDIES.find(v=>v.k===S.buddy)||BUDDIES[0];
-    return `<g class="bk ${cls||''}">${acc(x,y,'back')}<rect x="${x+12}" y="${y-7}" width="16" height="9" rx="3" fill="${b.c}" stroke="#1E2A4A" stroke-width="2.5"/>
+    return `<g class="bk ${cls||''}"><rect x="${x+12}" y="${y-7}" width="16" height="9" rx="3" fill="${b.c}" stroke="#1E2A4A" stroke-width="2.5"/>
       <rect x="${x}" y="${y}" width="40" height="38" rx="8" fill="${b.c}" stroke="#1E2A4A" stroke-width="3"/>
       <rect x="${x+4}" y="${y+28}" width="32" height="6" rx="3" fill="${b.d}" opacity=".5"/>
       <circle cx="${x+13}" cy="${y+15}" r="3.4" fill="#1E2A4A"/><circle cx="${x+27}" cy="${y+15}" r="3.4" fill="#1E2A4A"/>
-      <path d="M${x+13} ${y+22}q7 6 14 0" fill="none" stroke="#1E2A4A" stroke-width="2.5" stroke-linecap="round"/>${acc(x,y,'front')}</g>`;
+      <path d="M${x+13} ${y+22}q7 6 14 0" fill="none" stroke="#1E2A4A" stroke-width="2.5" stroke-linecap="round"/></g>`;
   }
   function renderTower(){
     $('tower').setAttribute('viewBox',`0 0 320 ${BASE()+92}`);
@@ -401,12 +324,7 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
       s+=`<g class="${flash.trim()}">`;
       MODES.forEach((m,j)=>{
         const x=22+j*77;
-        if(r.result==='pass'){
-          // 뽑은 특수 블록은 회색 자리(없으면 가운데)에 박힌다
-          let sp=-1;if(r.special){sp=MODES.findIndex(mm=>!r.ok[mm.k]);if(sp<0)sp=1}
-          if(j===sp)s+=brick(x,y,SP[r.special],anim.drop===i+':sp'?'drop':'',spDeco(r.special,x,y));
-          else s+=brick(x,y,r.ok[m.k]?m:GRAY);
-        }
+        if(r.result==='pass'){s+=brick(x,y,r.ok[m.k]?m:GRAY,anim.pass===i?'':'');}
         else if(r.result==='fail'){s+=brick(x,y,GRAY)}
         else if(r.ok[m.k]){s+=brick(x,y,m,(anim.drop===i+':'+m.k)?'drop':'')}
         else s+=ghost(x,y,m,isCur);
@@ -447,7 +365,7 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
       const n=(passed===N()?2:0)+(all?1:0);
       if(S.crashed){
         st.innerHTML=`<div class="finale"><h2>와장창!</h2><p>다 무너졌다! 다음 수업에서 또 쌓자</p>
-          <button class="btn go big" data-act="newclass">새로 쌓기</button>${decorHtml()}</div>`;
+          <button class="btn go big" data-act="newclass">새로 쌓기</button></div>`;
         return;
       }
       st.innerHTML=`<div class="finale"><h2>${passed===N()?`${N()}층 타워 완성!`:`${N()}층 타워 완성! (${passed}층 성공)`}</h2>
@@ -456,15 +374,14 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
         ${passed===N()&&!all?`<p style="color:var(--soft);font-size:15px">블록 ${N()*3}개를 전부 모으면 보너스 스티커가 하나 더!</p>`:''}
         <p style="font-family:var(--display);font-size:20px">다 쌓았으니… 이제 무너뜨려 볼까?</p>
         <button class="btn crash" data-act="crash">와장창 무너뜨리기!</button>
-        <button class="btn ghosty" data-act="newclass">무너뜨리지 않고 새 수업 준비</button>${decorHtml()}</div>`;
+        <button class="btn ghosty" data-act="newclass">무너뜨리지 않고 새 수업 준비</button></div>`;
       return;
     }
     const r=S.rounds[S.cur],tm=S.timer,done=!!r.result;
     const count=MODES.filter(m=>r.ok[m.k]).length;
     const nextLabel=S.cur<LI()?'다음 층으로':'오늘 결과 보기';
     let res='';
-    if(r.result==='pass'&&!r.special)res=`<div class="result pass"><p>${S.cur+1}층 완성! 블록 상자가 생겼어${MODES.every(m=>r.ok[m.k])?' (퍼펙트 상자!)':''}</p><button class="btn go big" data-act="openbox">상자 열기!</button></div>`;
-    else if(r.result==='pass')res=`<div class="result pass"><div class="reveal">${spIcon(r.special,70)}<p>${SP[r.special].name} 획득!</p></div><button class="btn go" data-act="next">${nextLabel}</button></div>`;
+    if(r.result==='pass')res=`<div class="result pass"><p>${S.cur+1}층 완성! 친구가 올라갔어요</p><button class="btn go" data-act="next">${nextLabel}</button></div>`;
     else if(r.result==='fail')res=`<div class="result fail"><p>괜찮아! 회색 블록으로 받쳐 두자</p><button class="btn ghosty" data-act="next">${nextLabel}</button></div>`;
     else if(r.again)res=`<div class="result again"><p>블록이 하나 모자라! 한 번 더?</p><div class="btns"><button class="btn" data-act="retry">다시 도전!</button><button class="btn ghosty" data-act="skip">이번엔 넘어가기</button></div></div>`;
     const frac=tm.total?tm.left/tm.total:0,lit=Math.ceil(frac*10-1e-9);
@@ -502,27 +419,7 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
     $('resetBox').innerHTML=ask?`<div class="reset-ask"><span>오늘 기록을 지울까요?</span><button class="yes" data-act="doreset">지우기</button><button data-act="noreset">아니요</button></div>`
       :`<button class="reset" data-act="askreset">새 수업 시작</button>`;
   }
-  /* 모은 블록 줄과 꾸미기 (꾸미기는 수업 끝 화면에서만) */
-  function renderBag(){
-    $('bag').innerHTML=SP_ORDER.map(k=>`<span class="it" title="${SP[k].name}">${spIcon(k,24)}<span>${C.blocks[k]}</span></span>`).join('');
-  }
-  function decorHtml(){
-    const items=ITEMS.map(it=>{
-      const own=C.owned[it.k],wearing=C.wear[it.slot]===it.k;
-      const can=Object.entries(it.cost).every(([k,v])=>C.blocks[k]>=v);
-      const price=Object.entries(it.cost).map(([k,v])=>`<span>${spIcon(k,18)}×${v}</span>`).join('');
-      return `<div class="item${wearing?' wearing':''}${own?' own':''}"><b>${it.name}</b>
-        ${own?`<button data-wear="${it.k}" class="${wearing?'off':''}">${wearing?'벗기':'입기'}</button>`
-             :`<span class="price">${price}</span><button data-buy="${it.k}" ${can?'':'disabled'}>열기</button>`}</div>`}).join('');
-    return `<div class="decor"><h3>블록 친구 꾸미기</h3>
-      <div class="decor-wrap">
-        <div class="preview"><svg viewBox="-22 -30 84 80" aria-label="꾸민 블록 친구">${buddy(0,0,'')}</svg></div>
-        <div class="decor-side"><div class="bag">${SP_ORDER.map(k=>`<span class="it" title="${SP[k].name}">${spIcon(k,24)}<span>${C.blocks[k]}</span></span>`).join('')}</div>
-          <div class="shop">${items}</div></div>
-      </div><p class="note">층을 완성하면 상자에서 특수 블록이 나와요. 세 블록을 다 모은 층에서는 황금 블록이 나올 수 있어요</p></div>`;
-  }
-
-  function all(){renderBag();renderTower();renderFloors();renderStage();renderCharge();renderBuddies();save();anim={drop:null,pass:null}}
+  function all(){renderTower();renderFloors();renderStage();renderCharge();renderBuddies();save();anim={drop:null,pass:null}}
 
   const calm=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -633,17 +530,6 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
     audio();
     const r=S.rounds[S.cur],tm=S.timer,a=b.dataset.act;
     if(b.dataset.buddy){S.buddy=b.dataset.buddy;tone([880,1175],'square',.08);all();return}
-    if(b.dataset.buy){
-      const it=ITEMS.find(x=>x.k===b.dataset.buy);
-      if(it&&!C.owned[it.k]&&Object.entries(it.cost).every(([k,v])=>C.blocks[k]>=v)){
-        Object.entries(it.cost).forEach(([k,v])=>{C.blocks[k]-=v});
-        C.owned[it.k]=true;C.wear[it.slot]=it.k;saveC();tone([784,988,1175,1568],'square',.09);
-      }
-      renderBag();renderTower();renderStage();return}
-    if(b.dataset.wear){
-      const it=ITEMS.find(x=>x.k===b.dataset.wear);
-      if(it){if(C.wear[it.slot]===it.k)delete C.wear[it.slot];else C.wear[it.slot]=it.k;saveC();tone([660,880],'square',.07)}
-      renderTower();renderStage();return}
     if(b.dataset.mode){
       const k=b.dataset.mode;r.ok[k]=!r.ok[k];
       if(r.ok[k]){anim.drop=S.cur+':'+k;tone([392,523],'square',.07)}
@@ -667,13 +553,6 @@ main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;ali
         break;}
       case 'retry':r.retry=true;r.again=false;r.ok={seat:false,quiet:false,time:false};tm.left=tm.total;break;
       case 'skip':r.result='fail';r.again=false;break;
-      case 'openbox':
-        if(r.result==='pass'&&!r.special){
-          r.special=drawSpecial(MODES.every(m=>r.ok[m.k]));C.blocks[r.special]++;saveC();
-          anim.drop=S.cur+':sp';
-          tone(r.special==='gold'?[523,659,784,1047,1319,1568,2093]:r.special==='rainbow'?[523,659,784,1047,1319]:[659,880,1175],'square',.08);
-        }
-        break;
       case 'next':
         if(S.cur<LI()){S.cur++;setMinutes(S.rounds[S.cur].minutes)}
         else{S.finished=true;tone([523,659,784,1047,784,1047,1319,1568],'square',.12);setTimeout(confetti,60)}
