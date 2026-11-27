@@ -617,7 +617,7 @@ function render(){
     h += `<div class="row mon-row">
       <div class="pic" id="mon${i}">${MONS[i].svg()}</div>
       <div class="info">
-        <div class="top"><span class="tag"><span>${esc(m.name)} Monster</span></span><span class="nick">${MONS[i].nick}</span>${T?`<button class="edit-txt" data-edit="monster" data-i="${i}">고치기</button>`:''}</div>
+        <div class="top"><span class="tag"><span>${esc(m.name)} Monster</span></span>${T?`<button class="edit-txt" data-edit="monster" data-i="${i}">고치기</button>`:''}</div>
         <div class="desc">${esc(m.desc)}</div>
         <div class="bottom"><div class="hearts"><span class="lbl">HP</span>${[0,1,2,3].map(k=>`<button class="heart ${k>=c.hp?'gone':''}" data-heart="${i}" data-k="${k}" aria-label="체력 ${k+1}">${HEART}</button>`).join('')}</div>
           <button class="heal-btn" data-heal="${i}" ${c.hp>=HP_MAX?'disabled style="opacity:.4"':''}>놓친 실수 → 회복</button>
